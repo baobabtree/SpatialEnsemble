@@ -1,7 +1,7 @@
 require(raster)
 set.seed(ceiling(sqrt(4301901)))
-ref = raster("../../../Experiment/Chanhassen/ref.img")
-features = stack("../../../Experiment/Chanhassen/spectral.img")
+ref = raster("~/Research/CodeRepository/SpatialDecompose/data/Chanhassen/ref.img")
+features = stack("~/Research/CodeRepository/SpatialDecompose/data/Chanhassen/spectral.img")
 
 nc = ref@ncols
 loc = 1:ncell(ref)
@@ -23,10 +23,13 @@ train=buffer(train,width=radius) #note here the width is meters, b/3=no.of.cell
 
 input[,5] = input[,5] +1;
 input[is.na(values(train)), 5] = 0
-write.table(input, "../../../Experiment/Chanhassen/chanhassen.input.txt",sep=",", row.n=F, col.n=F)
+write.table(input, "~/Research/CodeRepository/SpatialDecompose/data/Chanhassen/chanhassen.input.txt",sep=",", row.n=F, col.n=F)
+
+newinput=cbind(input[,1:4],textures[,1:4],input[,5:7]);
+write.table(newinput, "~/Research/CodeRepository/SpatialDecompose/data/Chanhassen/chanhassen.texture.input.txt",sep=",", row.n=F, col.n=F)
 
 #read clusters: (pid, cid, label)
-cls = read.table("../../../Experiment/Chanhassen/output.cluster.txt",sep=",")
+cls = read.table("~/Research/CodeRepository/SpatialDecompose/data/Chanhassen/output.lazycluster.txt",sep=",")
 cluster.ids=unique(cls[,2])
 dict=array(0,max(cluster.ids)+1)
 dict[cluster.ids+1]=sample(length(cluster.ids))
@@ -40,7 +43,7 @@ dev.new();plot(c.map,col=jet.colors(length(cluster.ids)))
 
 
 #read footprints from last BipartiteEnsemble with fid-cid
-footprints = read.table("../../../Experiment/Chanhassen/output.footprints.txt", sep=",");
+footprints = read.table("~/Research/CodeRepository/SpatialDecompose/data/ChanhassenChanhassen/output.footprints.txt", sep=",");
 footprint.map = ref;
 footprint.map[1:ncell(ref)]=NA
 for(fid in unique(footprints[,1])){
@@ -52,10 +55,10 @@ dev.new();plot(footprint.map, col=c("red","green"))
 
 
 #read footprints from BisectSpatialEnsemble fid-pid
-footprints = read.table("../../../Experiment/Chanhassen/output.footprints.txt", sep=",");
+footprints = read.table("~/Research/CodeRepository/SpatialDecompose/data/Chanhassen/chanhassen.footprints.txt",sep=",")
 footprint.map = ref;
 footprint.map[1:ncell(ref)]=NA
 for(fid in unique(footprints[,1])){
 	footprint.map[footprints[footprints[,1]==fid,2]+1] = fid;
 }
-dev.new();plot(footprint.map, col=c("red","green"))
+dev.new();plot(footprint.map, col=c("red","green","blue"))

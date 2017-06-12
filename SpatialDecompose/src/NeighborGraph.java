@@ -354,7 +354,8 @@ public class NeighborGraph {
         //System.out.println("merge cluster " + ci + " and cluster " + cj);
         //merge cj into ci, remove cluster cj
         cs.clusters.get(ci).MergeWithCluster(cs.clusters.get(cj)); //get new merged cluster
-        cs.clusters.put(maxCid+1, cs.clusters.get(ci)); //add into clusters group
+        cs.clusters.get(ci).id = maxCid + 1;
+        cs.clusters.put(maxCid+1, new Cluster(cs.clusters.get(ci))); //add into clusters group
         cs.clusters.remove(ci); //remove old cluster ci
         cs.clusters.remove(cj); //remove old cluster cj
 

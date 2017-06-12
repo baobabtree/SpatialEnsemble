@@ -33,8 +33,8 @@ public class Clusters {
 		int id = 0;
 		for (Point p : points) {
 			Cluster c = new Cluster(id, p);
-			id = id + 1;
 			clusters.put(c.id, c);
+			id = id + 1;
 		}
 	}
 
@@ -165,6 +165,22 @@ class Cluster{
 		points = new HashSet<Point>();
 		labeledPoints = new HashSet<Point>();
 		classCount=nc1=nc2=0;
+	}
+	
+	public Cluster(Cluster c){
+		id = c.id;
+		label = c.label;
+		classCount = c.classCount;
+		nc1 = c.nc1;
+		nc2 = c.nc2;
+		points = new HashSet<Point>();
+		labeledPoints = new HashSet<Point>();
+		for(Point p : c.points){
+			points.add(p);
+		}
+		for(Point p : c.labeledPoints){
+			labeledPoints.add(p);
+		}
 	}
 	
 	//single point cluster
