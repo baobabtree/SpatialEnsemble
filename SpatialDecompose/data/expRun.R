@@ -1,7 +1,7 @@
 require(raster)
 set.seed(ceiling(sqrt(4301901)))
-ref = raster("~/Research/CodeRepository/SpatialDecompose/data/Chanhassen/ref.img")
-features = stack("~/Research/CodeRepository/SpatialDecompose/data/Chanhassen/spectral.img")
+ref = raster("~/Research/CodeRepository/SpatialDecompose/data/BigStone/ref.tif")
+features = stack("~/Research/CodeRepository/SpatialDecompose/data/BigStone/features.tif")
 
 nc = ref@ncols
 loc = 1:ncell(ref)
@@ -61,4 +61,4 @@ footprint.map[1:ncell(ref)]=NA
 for(fid in unique(footprints[,1])){
 	footprint.map[footprints[footprints[,1]==fid,2]+1] = fid;
 }
-dev.new();plot(footprint.map, col=c("red","green","blue"))
+dev.new();plot(footprint.map, col=jet.colors(length(unique(footprints[,1]))))
