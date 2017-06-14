@@ -57,12 +57,15 @@ public class Texture {
 
 	
 	
-	
+	//Read all input columns into List of Arrays
 	public static ArrayList<ArrayList<Double>> ReadFeaturesIntoArray(String filename, int fDim){
 		ArrayList<ArrayList<Double>> features = new ArrayList<ArrayList<Double>>(fDim);
 		for(int i = 0; i < fDim; i++){
 			features.add(new ArrayList<Double>(10000));
 		}
+		features.add(new ArrayList<Double>(10000)); //for class
+		features.add(new ArrayList<Double>(10000)); //for loci
+		features.add(new ArrayList<Double>(10000)); //for locj
 		
 		BufferedReader br = null;
 		String line = "";
@@ -79,6 +82,9 @@ public class Texture {
 				for(fld = 0; fld < fDim; fld++){
 					features.get(fld).add(Double.parseDouble(fields[fld]));
 				}
+				features.get(fld).add(Double.parseDouble(fields[fld]));
+				features.get(fld + 1).add(Double.parseDouble(fields[fld + 1]));
+				features.get(fld + 2).add(Double.parseDouble(fields[fld + 2]));
 			}
 
 		} catch (FileNotFoundException e) {
@@ -97,20 +103,60 @@ public class Texture {
 		return features;
 	}
 	
+	//data contains fDim + 3 columns
+    public static void WriteToFile(String filename, ArrayList<ArrayList<Double>> data, int fDim) {
+        BufferedWriter bw = null;
+
+        try {
+            bw = new BufferedWriter(new FileWriter(filename));
+            for (int i = 0; i < data.get(0).size(); i ++) {
+                for (int j = 0; j < fDim; j++) {
+                    bw.write(data.get(j).get(i).toString() + ",");
+                }
+                bw.write(Integer.toString(data.get(fDim).get(i).intValue()) + ",");
+                bw.write(Integer.toString(data.get(fDim + 1).get(i).intValue()) + ",");
+                bw.write(Integer.toString(data.get(fDim + 2).get(i).intValue()) + "\n");
+            }
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            if (bw != null) {
+                try {
+                    bw.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+    
 	
 	public static void main(){
-		String filename = "input.txt";
+		String infilename = "input.txt";
+		String outfilename = "output.txt";
 		int nf = 4;
 		int nr = 111;
 		int nc = 111;
 		int w = 2;
 		int numBins = 32;
 		
-		ArrayList<ArrayList<Double>> features = ReadFeaturesIntoArray(filename, nf);
+		ArrayList<ArrayList<Double>> features = ReadFeaturesIntoArray(infilename, nf);
 		ArrayList<ArrayList<Double>> textures = new ArrayList<ArrayList<Double>>(nf);
 		for(int i = 0; i < nf; i++){
 			textures.add(ComputeTexture(features.get(i), nr, nc, w, numBins));
 		}
 		//print out textures
+		ArrayList<ArrayList<Double>> data = new ArrayList<ArrayList<Double>>();
+		for(int i = 0; i < nf; i++){
+			data.add(features.get(i));
+			data.add(textures.get(i));
+		}
+		data.add(features.get(nf));
+		data.add(features.get(nf+1));
+		data.add(features.get(nf+2));
+		
+		WriteToFile(outfilename, data, nf);
 	}
 }

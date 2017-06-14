@@ -5,3 +5,49 @@ require(raster)#
 #
 ref = raster("../../Experiment/Chanhassen/ref.img")
 q()
+features = stack("data/BigStone/features.tif")
+require(raster)
+features = stack("data/BigStone/features.tif")
+features = stack("BigStone/features.tif")
+features
+ref=raster("BigStone/ref.tif")
+ref
+for (i in 1:4){#
+  interval=values(features[[i]])#
+  interval=interval %/% 8#
+  features[[i]]=interval#
+}#
+textures = features;#
+# because R stores matrix by column, so the co-occurence matrix here is vertical#
+window.edge = 5#
+window.size = window.edge^2#
+normal_factor = 2*window.edge*(window.edge-1) # total number of co-occurrence pairs#
+for (i in 1:4){#
+  time_start=Sys.time()#
+  focaled = focal(features[[i]], w=matrix(1, window.edge, window.edge),fun=function(x,na.rm=TRUE){#
+    co_matrix = matrix(0,32,32)#
+    for (i in 1:window.size){#
+      if (i %% window.edge != 0){#
+        if(!is.na(x[i]) && !is.na(x[i+1])){#
+          co_matrix[x[i],x[i+1]] <- co_matrix[x[i],x[i+1]]+1#
+          co_matrix[x[i+1],x[i]] <- co_matrix[x[i+1],x[i]]+1#
+        }#
+      }#
+    }#
+    HOM = 0#
+    for (i in 1:32)#
+      for(j in 1:32){#
+        HOM <- HOM + co_matrix[i,j]/(1+abs(i-j))#
+      }#
+    return(HOM)#
+  },#
+  na.rm=TRUE, pad=TRUE)#
+  time_end = Sys.time()#
+  print(time_end-time_start)#
+ textures[[i]] = focaled;#
+ #writeRaster(focaled1,filename=paste(getwd(),"focal1.studyArea.tif",sep="/"),format="GTiff",overwrite=TRUE)#
+#  writeRaster(focaled,filename=paste("focal",i,".StudyArea.5x5.tif",sep=""),format="GTiff",overwrite=TRUE)#
+}
+features[[1]]
+textures[[1]]
+plot( textures[[1]])

@@ -1,0 +1,7 @@
+require(raster)
+ref = raster("../../Experiment/Chanhassen/ref.img")
+q()
+require(raster)#
+#
+ref = raster("../../Experiment/Chanhassen/ref.img")
+q()
