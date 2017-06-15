@@ -23,13 +23,16 @@ train=buffer(train,width=radius) #note here the width is meters, b/3=no.of.cell
 
 input[,5] = input[,5] +1;
 input[is.na(values(train)), 5] = 0
-write.table(input, "~/Research/CodeRepository/SpatialDecompose/data/Chanhassen/chanhassen.input.txt",sep=",", row.n=F, col.n=F)
+write.table(input, "~/Research/CodeRepository/SpatialDecompose/data/BigStone/input.txt",sep=",", row.n=F, col.n=F)
 
 newinput=cbind(input[,1:4],textures[,1:4],input[,5:7]);
 write.table(newinput, "~/Research/CodeRepository/SpatialDecompose/data/Chanhassen/chanhassen.texture.input.txt",sep=",", row.n=F, col.n=F)
 
+#read filtered points
+data=read.table("~/Research/CodeRepository/SpatialDecompose/data/BigStone/input.texture.txt",sep=",")
+
 #read clusters: (pid, cid, label)
-cls = read.table("~/Research/CodeRepository/SpatialDecompose/data/Chanhassen/output.lazycluster.txt",sep=",")
+cls = read.table("~/Research/CodeRepository/SpatialDecompose/data/BigStone/cluster.txt",sep=",")
 cluster.ids=unique(cls[,2])
 dict=array(0,max(cluster.ids)+1)
 dict[cluster.ids+1]=sample(length(cluster.ids))
@@ -62,3 +65,9 @@ for(fid in unique(footprints[,1])){
 	footprint.map[footprints[footprints[,1]==fid,2]+1] = fid;
 }
 dev.new();plot(footprint.map, col=jet.colors(length(unique(footprints[,1]))))
+
+
+
+#test decision tree
+dt = rpart(V9~., data=data[data[,9]>0,1:9],method="class");
+dt.pred = predict(dt, newdata = data[,1:9],type="class")
