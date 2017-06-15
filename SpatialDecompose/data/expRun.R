@@ -1,7 +1,7 @@
 require(raster)
 set.seed(ceiling(sqrt(4301901)))
-ref = raster("~/Research/CodeRepository/SpatialDecompose/data/BigStone/ref.tif")
-features = stack("~/Research/CodeRepository/SpatialDecompose/data/BigStone/features.tif")
+ref = raster("BigStone/ref.tif")
+features = stack("BigStone/features.tif")
 
 nc = ref@ncols
 loc = 1:ncell(ref)
@@ -29,10 +29,10 @@ newinput=cbind(input[,1:4],textures[,1:4],input[,5:7]);
 write.table(newinput, "~/Research/CodeRepository/SpatialDecompose/data/Chanhassen/chanhassen.texture.input.txt",sep=",", row.n=F, col.n=F)
 
 #read filtered points
-data=read.table("~/Research/CodeRepository/SpatialDecompose/data/BigStone/input.texture.txt",sep=",")
+data=read.table("BigStone/input.texture.txt",sep=",")
 
 #read clusters: (pid, cid, label)
-cls = read.table("~/Research/CodeRepository/SpatialDecompose/data/BigStone/cluster.txt",sep=",")
+cls = read.table("BigStone/cluster.txt",sep=",")
 cluster.ids=unique(cls[,2])
 dict=array(0,max(cluster.ids)+1)
 dict[cluster.ids+1]=sample(length(cluster.ids))

@@ -51,3 +51,34 @@ for (i in 1:4){#
 features[[1]]
 textures[[1]]
 plot( textures[[1]])
+getwd()
+require(raster)#
+set.seed(ceiling(sqrt(4301901)))#
+ref = raster("BigStone/ref.tif")#
+features = stack("~/Research/CodeRepository/SpatialDecompose/data/BigStone/features.tif")
+data=read.table("~/Research/CodeRepository/SpatialDecompose/data/BigStone/input.texture.txt",sep=",")
+data=read.table("BigStone/input.texture.txt",sep=",")
+cls = read.table("~/Research/CodeRepository/SpatialDecompose/data/BigStone/cluster.txt",sep=",")#
+cluster.ids=unique(cls[,2])#
+dict=array(0,max(cluster.ids)+1)#
+dict[cluster.ids+1]=sample(length(cluster.ids))#
+c.map=ref;#
+c.map[cls[,1]]=dict[cls[,2]+1]#
+#
+jet.colors <-#
+  colorRampPalette(c("#00007F", "blue", "#007FFF", "cyan",#
+                     "#7FFF7F", "yellow", "#FF7F00", "red", "#7F0000"))#
+dev.new();plot(c.map,col=jet.colors(length(cluster.ids)))
+cls = read.table("BigStone/cluster.txt",sep=",")#
+cluster.ids=unique(cls[,2])#
+dict=array(0,max(cluster.ids)+1)#
+dict[cluster.ids+1]=sample(length(cluster.ids))#
+c.map=ref;#
+c.map[cls[,1]]=dict[cls[,2]+1]#
+#
+jet.colors <-#
+  colorRampPalette(c("#00007F", "blue", "#007FFF", "cyan",#
+                     "#7FFF7F", "yellow", "#FF7F00", "red", "#7F0000"))#
+dev.new();plot(c.map,col=jet.colors(length(cluster.ids)))
+q()
+q()
