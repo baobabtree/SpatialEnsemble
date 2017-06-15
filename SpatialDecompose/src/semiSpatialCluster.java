@@ -23,7 +23,7 @@ public class semiSpatialCluster {
         //almost fixed parameters
         int r = 1;
         int k = 10; // number of nearest neighbor
-        int num_Zone = 4; // final number of zones
+        int num_Zone = 2; // final number of zones
         
         int n_feature = 8;
         int nr = 718;
@@ -34,24 +34,24 @@ public class semiSpatialCluster {
         ArrayList<Point> points = Point.ReadPointFile(input_file_path, n_feature);
         System.out.println("finish reading points!");
         Clusters cs = new Clusters();
-        cs.InitializeSinglePointCluster(points);
+        /*cs.InitializeSinglePointCluster(points);
         NeighborGraph ng = new NeighborGraph(cs, nr, nc, r);
         ng.HMergeLazy(np);
         ng.cs.WriteToFile(cluster_file_path);
-        ng.WriteGraphToFile(graph_file_path);
+        ng.WriteGraphToFile(graph_file_path);*/
         
         
         
-        //cs.ReadFromOutputFile(cluster_file_path, points);
+        cs.ReadFromOutputFile(cluster_file_path, points);
         
-        //NeighborGraph ng = new NeighborGraph(cs, graph_file_path);
+        NeighborGraph ng = new NeighborGraph(cs, graph_file_path);
         //ng.Print();
 
         ////BipartiteEnsemble be = new BipartiteEnsemble(ng, k, num_patches);
         ////be.WriteToFile(output_file_path);
         
-        //BipartiteEnsemble be2 = new BipartiteEnsemble(ng, k, num_Zone, true);
-        //be2.WriteToFileBisect(output_file_path);
+        BipartiteEnsemble be2 = new BipartiteEnsemble(ng, k, num_Zone, true);
+        be2.WriteToFileBisect(output_file_path);
         
     }
 }

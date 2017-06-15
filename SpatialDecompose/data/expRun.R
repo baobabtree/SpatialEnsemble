@@ -46,7 +46,7 @@ dev.new();plot(c.map,col=jet.colors(length(cluster.ids)))
 
 
 #read footprints from last BipartiteEnsemble with fid-cid
-footprints = read.table("~/Research/CodeRepository/SpatialDecompose/data/ChanhassenChanhassen/output.footprints.txt", sep=",");
+footprints = read.table("~/Research/CodeRepository/SpatialDecompose/data/BigStone/footprints.txt", sep=",");
 footprint.map = ref;
 footprint.map[1:ncell(ref)]=NA
 for(fid in unique(footprints[,1])){
@@ -58,7 +58,7 @@ dev.new();plot(footprint.map, col=c("red","green"))
 
 
 #read footprints from BisectSpatialEnsemble fid-pid
-footprints = read.table("~/Research/CodeRepository/SpatialDecompose/data/Chanhassen/chanhassen.footprints.txt",sep=",")
+footprints = read.table("~/Research/CodeRepository/SpatialDecompose/data/BigStone/footprints.txt",sep=",")
 footprint.map = ref;
 footprint.map[1:ncell(ref)]=NA
 for(fid in unique(footprints[,1])){
