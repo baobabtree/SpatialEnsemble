@@ -13,6 +13,7 @@ public class BipartiteEnsemble {
     HashSet<Integer> footprint2;
     int footprintSize1 = 0;
     int footprintSize2 = 0;
+    
     double alpha = 0.95;
     ArrayList<NeighborGraph> footprints; //use NeighborGraph's to represent all footprints
     
