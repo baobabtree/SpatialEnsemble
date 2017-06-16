@@ -90,3 +90,252 @@ for(fid in unique(footprints[,1])){#
 }#
 dev.new();plot(footprint.map, col=jet.colors(length(unique(footprints[,1]))))
 q()
+require(raster)#
+set.seed(ceiling(sqrt(4301901)))#
+ref = raster("~/Research/CodeRepository/SpatialDecompose/data/BigStone/ref.tif")
+data=read.table("~/Research/CodeRepository/SpatialDecompose/data/BigStone/input.texture.txt",sep=",")
+summary(data)
+cls = read.table("~/Research/CodeRepository/SpatialDecompose/data/BigStone/cluster.txt",sep=",")#
+cluster.ids=unique(cls[,2])#
+dict=array(0,max(cluster.ids)+1)#
+dict[cluster.ids+1]=sample(length(cluster.ids))#
+c.map=ref;#
+c.map[cls[,1]]=dict[cls[,2]+1]#
+#
+jet.colors <-#
+  colorRampPalette(c("#00007F", "blue", "#007FFF", "cyan",#
+                     "#7FFF7F", "yellow", "#FF7F00", "red", "#7F0000"))#
+dev.new();plot(c.map,col=jet.colors(length(cluster.ids)))
+dt = rpart(V9~., data=data[data[,9]>0,1:9],method="class");#
+dt.pred = predict(dt, newdata = data[,1:9],type="class")
+require(rpart)
+dt = rpart(V9~., data=data[data[,9]>0,1:9],method="class");#
+dt.pred = predict(dt, newdata = data[,1:9],type="class")
+dt.map = ref; #
+dt.map[1:ncell(ref)] = as.numeric(dt.pred);
+table(values(ref),dt.pred)
+dt.map = ref; #
+dt.map[1:ncell(ref)] = as.numeric(dt.pred)-1;#
+dt.map[dt.map==0&ref==1] = 2;#
+dt.map[dt.map==1&ref==0] = 3;#
+dev.new();plot(dt.map)
+dev.new();plot(dt.map, col=c("red","green","black","blue"))
+train.map = ref; train.map[data[,9]>0] = NA; dev.new(); plot(train.map)
+train.map = ref; train.map[data[,9]>0] = NA; dev.new(); plot(train.map, col=c("red","green"))
+footprints = read.table("~/Research/CodeRepository/SpatialDecompose/data/BigStone/footprints.txt",sep=",")#
+footprint.map = ref;#
+footprint.map[1:ncell(ref)]=NA#
+for(fid in unique(footprints[,1])){#
+	footprint.map[footprints[footprints[,1]==fid,2]+1] = fid;#
+}
+table(ref[footprints==1])
+table(ref[footprints[,1]==1])
+table(ref[footprints[,1]==2])
+dev.new();plot(footprint.map, col=jet.colors(length(unique(footprints[,1]))))
+train.map = ref; train.map[data[,9]>0] = NA; dev.new(); plot(train.map, col=c("red","green"))
+table(data[footprints[,1]==2,9])
+table(data[footprints[footprints[,1]==2,2],9])
+dev.new();plot(dt.map, col=c("red","green","black","blue"))
+cls = read.table("~/Research/CodeRepository/SpatialDecompose/data/BigStone/cluster.txt",sep=",")#
+cluster.ids=unique(cls[,2])#
+dict=array(0,max(cluster.ids)+1)#
+dict[cluster.ids+1]=sample(length(cluster.ids))#
+c.map=ref;#
+c.map[cls[,1]]=dict[cls[,2]+1]#
+#
+jet.colors <-#
+  colorRampPalette(c("#00007F", "blue", "#007FFF", "cyan",#
+                     "#7FFF7F", "yellow", "#FF7F00", "red", "#7F0000"))#
+dev.new();plot(c.map,col=jet.colors(length(cluster.ids)))
+cls = read.table("~/Research/CodeRepository/SpatialDecompose/data/BigStone/cluster.txt",sep=",")#
+cluster.ids=unique(cls[,2])#
+dict=array(0,max(cluster.ids)+1)#
+dict[cluster.ids+1]=sample(length(cluster.ids))#
+c.map=ref;#
+c.map[cls[,1]]=dict[cls[,2]+1]#
+#
+jet.colors <-#
+  colorRampPalette(c("#00007F", "blue", "#007FFF", "cyan",#
+                     "#7FFF7F", "yellow", "#FF7F00", "red", "#7F0000"))#
+dev.new();plot(c.map,col=jet.colors(length(cluster.ids)))
+footprints = read.table("~/Research/CodeRepository/SpatialDecompose/data/BigStone/footprints.txt",sep=",")#
+footprint.map = ref;#
+footprint.map[1:ncell(ref)]=NA#
+for(fid in unique(footprints[,1])){#
+	footprint.map[footprints[footprints[,1]==fid,2]+1] = fid;#
+}#
+dev.new();plot(footprint.map, col=jet.colors(length(unique(footprints[,1]))))
+table(data[footprints[footprints[,1]==2,2],9])
+table(data[footprints[footprints[,1]==1,2],9])
+footprints = read.table("~/Research/CodeRepository/SpatialDecompose/data/BigStone/footprints.txt",sep=",")#
+footprint.map = ref;#
+footprint.map[1:ncell(ref)]=NA#
+for(fid in unique(footprints[,1])){#
+	footprint.map[footprints[footprints[,1]==fid,2]+1] = fid;#
+}#
+dev.new();plot(footprint.map, col=jet.colors(length(unique(footprints[,1]))))
+table(data[footprints[footprints[,1]==1,2],9])
+table(data[footprints[footprints[,1]==1,2],9])
+table(data[footprints[footprints[,1]==2,2],9])
+footprints = read.table("~/Research/CodeRepository/SpatialDecompose/data/BigStone/footprints.txt",sep=",")#
+footprint.map = ref;#
+footprint.map[1:ncell(ref)]=NA#
+for(fid in unique(footprints[,1])){#
+	footprint.map[footprints[footprints[,1]==fid,2]+1] = fid;#
+}#
+dev.new();plot(footprint.map, col=jet.colors(length(unique(footprints[,1]))))
+footprints = read.table("~/Research/CodeRepository/SpatialDecompose/data/BigStone/footprints.txt",sep=",")#
+footprint.map = ref;#
+footprint.map[1:ncell(ref)]=NA#
+for(fid in unique(footprints[,1])){#
+	footprint.map[footprints[footprints[,1]==fid,2]+1] = fid;#
+}#
+dev.new();plot(footprint.map, col=jet.colors(length(unique(footprints[,1]))))
+footprints = read.table("~/Research/CodeRepository/SpatialDecompose/data/BigStone/footprints.txt",sep=",")#
+footprint.map = ref;#
+footprint.map[1:ncell(ref)]=NA#
+for(fid in unique(footprints[,1])){#
+	footprint.map[footprints[footprints[,1]==fid,2]+1] = fid;#
+}#
+dev.new();plot(footprint.map, col=jet.colors(length(unique(footprints[,1]))))
+footprints = read.table("~/Research/CodeRepository/SpatialDecompose/data/BigStone/footprints.txt",sep=",")#
+footprint.map = ref;#
+footprint.map[1:ncell(ref)]=NA#
+for(fid in unique(footprints[,1])){#
+	footprint.map[footprints[footprints[,1]==fid,2]+1] = fid;#
+}#
+dev.new();plot(footprint.map, col=jet.colors(length(unique(footprints[,1]))))
+footprints = read.table("~/Research/CodeRepository/SpatialDecompose/data/BigStone/footprints.txt",sep=",")#
+footprint.map = ref;#
+footprint.map[1:ncell(ref)]=NA#
+for(fid in unique(footprints[,1])){#
+	footprint.map[footprints[footprints[,1]==fid,2]+1] = fid;#
+}#
+dev.new();plot(footprint.map, col=jet.colors(length(unique(footprints[,1]))))
+footprints = read.table("~/Research/CodeRepository/SpatialDecompose/data/BigStone/footprints.txt",sep=",")#
+footprint.map = ref;#
+footprint.map[1:ncell(ref)]=NA#
+for(fid in unique(footprints[,1])){#
+	footprint.map[footprints[footprints[,1]==fid,2]+1] = fid;#
+}#
+dev.new();plot(footprint.map, col=jet.colors(length(unique(footprints[,1]))))
+footprints = read.table("~/Research/CodeRepository/SpatialDecompose/data/BigStone/footprints.txt",sep=",")#
+footprint.map = ref;#
+footprint.map[1:ncell(ref)]=NA#
+for(fid in unique(footprints[,1])){#
+	footprint.map[footprints[footprints[,1]==fid,2]+1] = fid;#
+}#
+dev.new();plot(footprint.map, col=jet.colors(length(unique(footprints[,1]))))
+footprints = read.table("~/Research/CodeRepository/SpatialDecompose/data/BigStone/footprints.txt",sep=",")#
+footprint.map = ref;#
+footprint.map[1:ncell(ref)]=NA#
+for(fid in unique(footprints[,1])){#
+	footprint.map[footprints[footprints[,1]==fid,2]+1] = fid;#
+}#
+dev.new();plot(footprint.map, col=jet.colors(length(unique(footprints[,1]))))
+footprints = read.table("~/Research/CodeRepository/SpatialDecompose/data/BigStone/footprints.txt",sep=",")#
+footprint.map = ref;#
+footprint.map[1:ncell(ref)]=NA#
+for(fid in unique(footprints[,1])){#
+	footprint.map[footprints[footprints[,1]==fid,2]+1] = fid;#
+}#
+dev.new();plot(footprint.map, col=jet.colors(length(unique(footprints[,1]))))
+res = matrix(0, nr=2,nc=2);#
+for(i in unique(footprints[,1])){#
+	data.i = data[footprints[footprints[,1]==i,2],];#
+	train.i = data.i[data.i[,9]>0,1:9]#
+	ref.i = ref[footprints[footprints[,1]==i,2]]#
+	dt.i = rpart(V9~., data=train.i, method="class");#
+	dt.pred.i = predict(dt.i, newdata = data.i, type="class")#
+	res.i = table(ref.i, dt.pred.i);#
+	print(res.i)#
+	res = res + res.i;#
+}
+class(dt.pred.i)
+help(table)
+table(0,0)
+res = matrix(0, nr=2,nc=2);#
+for(i in unique(footprints[,1])){#
+	data.i = data[footprints[footprints[,1]==i,2],];#
+	train.i = data.i[data.i[,9]>0,1:9]#
+	ref.i = ref[footprints[footprints[,1]==i,2]]#
+	dt.i = rpart(V9~., data=train.i, method="class");#
+	dt.pred.i = predict(dt.i, newdata = data.i, type="class")#
+	res.i = table(ref.i, dt.pred.i);#
+	print(res.i)#
+	#res = res + res.i;#
+}
+for(i in unique(footprints[,1])){#
+	data.i = data[footprints[footprints[,1]==i,2]+1,];#
+	train.i = data.i[data.i[,9]>0,1:9]#
+	ref.i = ref[footprints[footprints[,1]==i,2]+1]#
+	dt.i = rpart(V9~., data=train.i, method="class");#
+	dt.pred.i = predict(dt.i, newdata = data.i, type="class")#
+	res.i = table(ref.i, dt.pred.i);#
+	print(res.i)#
+	#res = res + res.i;#
+}
+footprints = read.table("~/Research/CodeRepository/SpatialDecompose/data/BigStone/footprints.txt",sep=",")#
+footprint.map = ref;#
+footprint.map[1:ncell(ref)]=NA#
+for(fid in unique(footprints[,1])){#
+	footprint.map[footprints[footprints[,1]==fid,2]+1] = fid;#
+}#
+dev.new();plot(footprint.map, col=jet.colors(length(unique(footprints[,1]))))#
+#
+#get per footprint prediction accuracy#
+#footprint1#
+res = matrix(0, nr=2,nc=2);#
+for(i in unique(footprints[,1])){#
+	data.i = data[footprints[footprints[,1]==i,2]+1,];#
+	train.i = data.i[data.i[,9]>0,1:9]#
+	ref.i = ref[footprints[footprints[,1]==i,2]+1]#
+	dt.i = rpart(V9~., data=train.i, method="class");#
+	dt.pred.i = predict(dt.i, newdata = data.i, type="class")#
+	res.i = table(ref.i, dt.pred.i);#
+	print(res.i)#
+	#res = res + res.i;#
+}
+footprints = read.table("~/Research/CodeRepository/SpatialDecompose/data/BigStone/footprints.txt",sep=",")#
+footprint.map = ref;#
+footprint.map[1:ncell(ref)]=NA#
+for(fid in unique(footprints[,1])){#
+	footprint.map[footprints[footprints[,1]==fid,2]+1] = fid;#
+}#
+dev.new();plot(footprint.map, col=jet.colors(length(unique(footprints[,1]))))#
+#
+#get per footprint prediction accuracy#
+#footprint1#
+res = matrix(0, nr=2,nc=2);#
+for(i in unique(footprints[,1])){#
+	data.i = data[footprints[footprints[,1]==i,2]+1,];#
+	train.i = data.i[data.i[,9]>0,1:9]#
+	ref.i = ref[footprints[footprints[,1]==i,2]+1]#
+	dt.i = rpart(V9~., data=train.i, method="class");#
+	dt.pred.i = predict(dt.i, newdata = data.i, type="class")#
+	res.i = table(ref.i, dt.pred.i);#
+	print(res.i)#
+	#res = res + res.i;#
+}
+footprints = read.table("~/Research/CodeRepository/SpatialDecompose/data/BigStone/footprints.txt",sep=",")#
+footprint.map = ref;#
+footprint.map[1:ncell(ref)]=NA#
+for(fid in unique(footprints[,1])){#
+	footprint.map[footprints[footprints[,1]==fid,2]+1] = fid;#
+}#
+dev.new();plot(footprint.map, col=jet.colors(length(unique(footprints[,1]))))#
+#
+#get per footprint prediction accuracy#
+#footprint1#
+res = matrix(0, nr=2,nc=2);#
+for(i in unique(footprints[,1])){#
+	data.i = data[footprints[footprints[,1]==i,2]+1,];#
+	train.i = data.i[data.i[,9]>0,1:9]#
+	ref.i = ref[footprints[footprints[,1]==i,2]+1]#
+	dt.i = rpart(V9~., data=train.i, method="class");#
+	dt.pred.i = predict(dt.i, newdata = data.i, type="class")#
+	res.i = table(ref.i, dt.pred.i);#
+	print(res.i)#
+	#res = res + res.i;#
+}
+q()
