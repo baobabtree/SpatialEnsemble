@@ -16,6 +16,7 @@ public class BipartiteEnsemble {
     double alpha = 0.95;
     ArrayList<NeighborGraph> footprints; //use NeighborGraph's to represent all footprints
     
+    
     public BipartiteEnsemble(NeighborGraph ng, int k, int m, boolean flag){
     	footprints = new ArrayList<NeighborGraph>();
     	footprints.add(ng);

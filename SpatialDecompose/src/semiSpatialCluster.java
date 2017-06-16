@@ -30,6 +30,7 @@ public class semiSpatialCluster {
         int nc = 830;
         int np = 2000; // number of patches in inputs
         
+        
         //create clusters
         ArrayList<Point> points = Point.ReadPointFile(input_file_path, n_feature);
         System.out.println("finish reading points!");
@@ -42,6 +43,7 @@ public class semiSpatialCluster {
         
         
         cs.ReadFromOutputFile(cluster_file_path, points);
+        
         
         NeighborGraph ng = new NeighborGraph(cs, graph_file_path);
         //ng.Print();
