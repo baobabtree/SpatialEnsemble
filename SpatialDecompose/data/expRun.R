@@ -66,8 +66,37 @@ for(fid in unique(footprints[,1])){
 }
 dev.new();plot(footprint.map, col=jet.colors(length(unique(footprints[,1]))))
 
+#get per footprint prediction accuracy
+#footprint1
+res = matrix(0, nr=2,nc=2);
+for(i in unique(footprints[,1])){
+	data.i = data[footprints[footprints[,1]==i,2]+1,];
+	train.i = data.i[data.i[,9]>0,1:9]
+	ref.i = ref[footprints[footprints[,1]==i,2]+1]
+	dt.i = rpart(V9~., data=train.i, method="class");
+	dt.pred.i = predict(dt.i, newdata = data.i, type="class")
+	res.i = table(ref.i, dt.pred.i);
+	print(res.i)
+	#res = res + res.i;
+}
 
+
+
+
+
+
+
+
+
+#plot training set locations
+train.map = ref; train.map[data[,9]>0] = NA; dev.new(); plot(train.map, col=c("red","green"))
 
 #test decision tree
+require(rpart)
 dt = rpart(V9~., data=data[data[,9]>0,1:9],method="class");
 dt.pred = predict(dt, newdata = data[,1:9],type="class")
+dt.map = ref; 
+dt.map[1:ncell(ref)] = as.numeric(dt.pred)-1;
+dt.map[dt.map==0&ref==1] = 2;
+dt.map[dt.map==1&ref==0] = 3;
+dev.new();plot(dt.map, col=c("red","green","black","blue"))

@@ -51,3 +51,42 @@ for (i in 1:4){#
 features[[1]]
 textures[[1]]
 plot( textures[[1]])
+data=read.table("~/Research/CodeRepository/SpatialDecompose/data/BigStone/input.texture.txt",sep=",")
+require(raster)
+footprints = read.table("~/Research/CodeRepository/SpatialDecompose/data/BigStone/footprints.txt", sep=",");#
+footprint.map = ref;#
+footprint.map[1:ncell(ref)]=NA#
+for(fid in unique(footprints[,1])){#
+	for(cid in footprints[footprints[,1]==fid,2]){#
+		footprint.map[cls[cls[,2]==cid,1] + 1] = fid;#
+	}#
+}#
+dev.new();plot(footprint.map, col=c("red","green"))
+ref = raster("~/Research/CodeRepository/SpatialDecompose/data/BigStone/ref.tif")
+footprints = read.table("~/Research/CodeRepository/SpatialDecompose/data/BigStone/footprints.txt", sep=",");#
+footprint.map = ref;#
+footprint.map[1:ncell(ref)]=NA#
+for(fid in unique(footprints[,1])){#
+	for(cid in footprints[footprints[,1]==fid,2]){#
+		footprint.map[cls[cls[,2]==cid,1] + 1] = fid;#
+	}#
+}#
+dev.new();plot(footprint.map, col=c("red","green"))
+footprints = read.table("~/Research/CodeRepository/SpatialDecompose/data/BigStone/footprints.txt",sep=",")#
+footprint.map = ref;#
+footprint.map[1:ncell(ref)]=NA#
+for(fid in unique(footprints[,1])){#
+	footprint.map[footprints[footprints[,1]==fid,2]+1] = fid;#
+}#
+dev.new();plot(footprint.map, col=jet.colors(length(unique(footprints[,1]))))
+jet.colors <-#
+  colorRampPalette(c("#00007F", "blue", "#007FFF", "cyan",#
+                     "#7FFF7F", "yellow", "#FF7F00", "red", "#7F0000"))
+footprints = read.table("~/Research/CodeRepository/SpatialDecompose/data/BigStone/footprints.txt",sep=",")#
+footprint.map = ref;#
+footprint.map[1:ncell(ref)]=NA#
+for(fid in unique(footprints[,1])){#
+	footprint.map[footprints[footprints[,1]==fid,2]+1] = fid;#
+}#
+dev.new();plot(footprint.map, col=jet.colors(length(unique(footprints[,1]))))
+q()

@@ -11,6 +11,9 @@ public class BipartiteEnsemble {
     HashMap<Integer, HashMap<Integer, Double>> ambi_map;
     HashSet<Integer> footprint1;
     HashSet<Integer> footprint2;
+    int footprintSize1 = 0;
+    int footprintSize2 = 0;
+    double alpha = 0.95;
     ArrayList<NeighborGraph> footprints; //use NeighborGraph's to represent all footprints
     
     public BipartiteEnsemble(NeighborGraph ng, int k, int m, boolean flag){
@@ -70,14 +73,28 @@ public class BipartiteEnsemble {
             }
         }
         Collections.sort(pairs, Collections.reverseOrder());
+        
+        //debug: print out all pairs
+        for(ClusterPair pair : pairs){
+        	if(pair.amb > 0.05){
+        		System.out.println(pair.c1id + "," + pair.c2id + ":" + pair.amb);
+        	}
+        	else {
+        		break;
+        	}
+        }
 
         footprint1 = new HashSet<Integer>();
         footprint2 = new HashSet<Integer>();
+        footprintSize1 = 0;
+        footprintSize2 = 0;
         
         Iterator<ClusterPair> pairIter = pairs.iterator();
         ClusterPair cp = pairIter.next();
         footprint1.add(cp.c1id);
         footprint2.add(cp.c2id);
+        footprintSize1 += ng.cs.clusters.get(cp.c1id).points.size();
+        footprintSize2 += ng.cs.clusters.get(cp.c2id).points.size();
         
         HashSet<Integer> frontier1 = new HashSet<Integer>(ng.graph.get(cp.c1id).neighborList.keySet()); 
         HashSet<Integer> frontier2 = new HashSet<Integer>(ng.graph.get(cp.c2id).neighborList.keySet()); 
@@ -97,9 +114,17 @@ public class BipartiteEnsemble {
         		double supInter = -1;
         		double curScore = 0;
         		
+        		//get size balance score
+        		int cSize = ng.cs.clusters.get(n1).points.size(); //size of candidate cluster node
+        		double footprintSize1Ratio = (footprintSize1 + cSize + 0.0) / (footprintSize1 + cSize + footprintSize2);
+        		double sizeEntropy = -1 * footprintSize1Ratio * Math.log( footprintSize1Ratio ) / Math.log(2)
+        				- (1-footprintSize1Ratio ) * Math.log(1- footprintSize1Ratio ) / Math.log(2);    
+        		
+        		//System.out.println("size entropy " + sizeEntropy);
+        		
         		//if no ambiguity for inter or intra, score = (1+0)/(1+0)=1;
         		if( !c1ids.contains(n1) && !c2ids.contains(n1) ){
-        			curScore = 1; //(0+1)/(0+1)
+        			curScore = 1 * alpha + sizeEntropy * (1-alpha); //(0+1)/(0+1)
         			if( curScore > MaxScore ){
         				MaxScore = curScore;
         				maxNid = n1;
@@ -128,7 +153,7 @@ public class BipartiteEnsemble {
         			}
         		}
         		
-        		curScore = ( 1 + supInter ) / ( 1 + supIntra );
+        		curScore = ( 1 + supInter ) / ( 1 + supIntra ) * alpha + sizeEntropy * (1-alpha); //revised score
     			
         		//update if needed
         		if( curScore > MaxScore ){
@@ -143,9 +168,16 @@ public class BipartiteEnsemble {
         		double supInter = -1;
         		double curScore = 0;
         		
+        		//get size balance score
+        		int cSize = ng.cs.clusters.get(n2).points.size(); //size of candidate cluster node
+        		double footprintSize2Ratio = (footprintSize2 + cSize +0.0) / (footprintSize1 + cSize + footprintSize2);
+        		double sizeEntropy = -1 * footprintSize2Ratio * Math.log( footprintSize2Ratio ) / Math.log(2)
+        				- (1-footprintSize2Ratio ) * Math.log(1- footprintSize2Ratio ) / Math.log(2);    
+
+        		
         		//if no ambiguity for inter or intra, score = (1+0)/(1+0)=1;
         		if( !c1ids.contains(n2) && !c2ids.contains(n2) ){
-        			curScore = 1;
+        			curScore = 1 * alpha + sizeEntropy * (1-alpha);
         			if( curScore > MaxScore ){
         				MaxScore = curScore;
         				maxNid = n2;
@@ -174,7 +206,7 @@ public class BipartiteEnsemble {
         			}
         		}
         		
-        		curScore = ( 1 + supInter ) / ( 1 + supIntra );
+        		curScore = ( 1 + supInter ) / ( 1 + supIntra ) * alpha + sizeEntropy * (1-alpha);
     			
         		//update if needed
         		if( curScore > MaxScore ){
@@ -183,6 +215,8 @@ public class BipartiteEnsemble {
     				maxFid = 2;
     			}
         	}//end of checking nodes in frontier 2
+        	
+        	System.out.println("footprint " + maxFid + " adds node " + maxNid);
         	
         	if( maxFid == 1 ){
         		footprint1.add(maxNid);
@@ -193,6 +227,7 @@ public class BipartiteEnsemble {
         				frontier1.add(ni);
         			}
         		}
+        		footprintSize1 += ng.cs.clusters.get(maxNid).points.size();
         	}
         	else{
         		footprint2.add(maxNid);
@@ -203,6 +238,7 @@ public class BipartiteEnsemble {
         				frontier2.add(ni);
         			}
         		}
+        		footprintSize2 += ng.cs.clusters.get(maxNid).points.size();
         	}//end: adding node to footprint and updating frontier
         }//end of adding all nodes to footprints
      }

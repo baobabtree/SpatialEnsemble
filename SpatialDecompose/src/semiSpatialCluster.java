@@ -23,7 +23,7 @@ public class semiSpatialCluster {
         //almost fixed parameters
         int r = 1;
         int k = 10; // number of nearest neighbor
-        int num_Zone = 2; // final number of zones
+        int num_Zone = 8; // final number of zones
         
         int n_feature = 8;
         int nr = 718;
@@ -39,7 +39,6 @@ public class semiSpatialCluster {
         ng.HMergeLazy(np);
         ng.cs.WriteToFile(cluster_file_path);
         ng.WriteGraphToFile(graph_file_path);*/
-        
         
         
         cs.ReadFromOutputFile(cluster_file_path, points);
