@@ -432,6 +432,36 @@ public class NeighborGraph {
 
         return ci;
     }
+    
+    //not tested!
+    public int RemoveHoles(int minSize){
+    	int maxId = cs.clusters.size();
+    	HashSet<Integer> holes = new HashSet<Integer>();
+    	for(Integer cid : cs.clusters.keySet()){
+			if( cs.clusters.get(cid).points.size() < minSize ){
+				holes.add(cid);
+			}
+		}
+    	while(! holes.isEmpty() ){
+    		int cid = holes.iterator().next(); 
+    		//merge cid with its neighbors
+    		int largestNeigh = -1; int largestNeighSize = -1;
+			for(Integer nid : graph.get(cid).neighborList.keySet()){
+				if( cs.clusters.get(nid).points.size() > largestNeighSize ){
+					largestNeighSize = cs.clusters.get(nid).points.size();
+					largestNeigh = nid;
+				}
+			}
+			
+			maxId = MergeTwoClusterNewNode(cid, largestNeigh, maxId);//return last used maxId
+			if( holes.contains(largestNeigh) ){
+				holes.remove(largestNeigh);
+				holes.add(maxId);
+			}
+    	}
+    	
+		return maxId;
+    }
 
     public boolean HMergeLazy(int m) {
     	PriorityQueue<PatchPair> PQ = new PriorityQueue();
@@ -440,7 +470,17 @@ public class NeighborGraph {
     	PQ.add(new PatchPair(0,0,0)); //dummy element for stop criteria
     	int maxId = cs.clusters.size(); // last maxid taken
     	
+    	int checkSize = (int) (cs.clusters.size() * 0.1); //used for cleanup small holes
+    	int minSize = 30; //size threshold for small holes
+    	
     	while( cs.clusters.size() > m && !PQ.isEmpty() ){
+    		//add in a step to remove holes
+    		if( cs.clusters.size() == checkSize ){
+    			//remove small whole; TBD
+    			maxId = RemoveHoles(minSize);
+    			continue;
+    		}
+    		
     		if(cs.clusters.size() == nextSize){
                 //clear PQ and Reload Priority Queue
     			PQ.clear();
@@ -478,7 +518,7 @@ public class NeighborGraph {
     		obsoleteCids.add(pair.c1id);
     		obsoleteCids.add(pair.c2id);
     		
-            if (cs.clusters.size() % 100 == 0) System.out.println(cs.clusters.size());
+            if (cs.clusters.size() % 1000 == 0) System.out.println(cs.clusters.size());
     	}
   
         return true;

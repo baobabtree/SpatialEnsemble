@@ -10,16 +10,41 @@ loc.c = (loc-1)%%nc + 1
 
 input = data.frame(values(features[[1]]), values(features[[2]]), values(features[[3]]), values(features[[4]]), values(ref), loc.r, loc.c)
 
+
+#sample 1: Clustered Sampling
+trainWetRep=sample(loc.raster[ref==1],N)
+trainDryRep=sample(loc.raster[ref==0],N)
+trainRep = c(trainWetRep, trainDryRep)
+
+#sample 2: systematic clustered sampling
+num.per.cell = 2;
+all.cell.number=1:(ref@ncols*ref@nrows)
+grid.size=100
+grid.nrows=ceiling(ref@nrows/grid.size)
+grid.ncols=ceiling(ref@ncols/grid.size)
+i.vec=rep(1:ref@nrows,each=ref@ncols)
+j.vec=rep(1:ref@ncols,times=ref@nrows)
+i.grid.vec=ceiling(i.vec/grid.size)
+j.grid.vec=ceiling(j.vec/grid.size)
+grid.number=(i.grid.vec-1)*grid.ncols+j.grid.vec
+trainRep = NULL;
+for(g in 1:(grid.nrows*grid.ncols)){
+	#randomly select several samples
+	trainRep.g = sample(all.cell.number[grid.number==g], 2)
+	trainRep = c(trainRep, trainRep.g);
+	#grid.majority.class[g]=modal(ref[which(grid.number==g)])
+}
+
+#clustered sample
 train=ref;
 train[1:ncell(train)]=NA
 N = 30
-loc.raster = ref;
+loc.raster = ref
 loc.raster[1:ncell(ref)]=loc
-trainWetRep=sample(loc.raster[ref==1],N)
-trainDryRep=sample(loc.raster[ref==0],N)
-train[c(trainWetRep, trainDryRep)]=1
+train[c(trainRep)]=1
 radius=21
 train=buffer(train,width=radius) #note here the width is meters, b/3=no.of.cell
+dev.new(); plot(train)
 
 input[,5] = input[,5] +1;
 input[is.na(values(train)), 5] = 0
@@ -30,6 +55,9 @@ write.table(newinput, "~/Research/CodeRepository/SpatialDecompose/data/Chanhasse
 
 #read filtered points
 data=read.table("BigStone/input.texture.txt",sep=",")
+data[,9] = values(ref) + 1;
+data[is.na(values(train)),9] = 0;
+#write.table(data,"BigStone/input.texture.txt",sep=",", row.n=F, col.n=F)
 
 #read clusters: (pid, cid, label)
 cls = read.table("BigStone/cluster.txt",sep=",")
@@ -79,11 +107,6 @@ for(i in unique(footprints[,1])){
 	print(res.i)
 	#res = res + res.i;
 }
-
-
-
-
-
 
 
 
