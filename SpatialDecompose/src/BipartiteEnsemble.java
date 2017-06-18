@@ -14,7 +14,7 @@ public class BipartiteEnsemble {
     int footprintSize1 = 0;
     int footprintSize2 = 0;
     
-    double alpha = 0.95;
+    double alpha = 0.90;
     ArrayList<NeighborGraph> footprints; //use NeighborGraph's to represent all footprints
     
     
@@ -27,7 +27,8 @@ public class BipartiteEnsemble {
     		int maxAmbiI = 0;
     		
     		for(int i = 0; i < footprints.size(); i++){
-    			double curAmbi = footprints.get(i).cs.KNNAmbiguity(k);
+    			double curAmbi = footprints.get(i).cs.AvgPairwiseKNNAmbiguity(k);
+    			//double curAmbi = footprints.get(i).cs.KNNAmbiguity(k);
     			if( curAmbi > maxAmbi ){
     				maxAmbi = curAmbi;
     				maxAmbiI = i;
@@ -44,33 +45,30 @@ public class BipartiteEnsemble {
     		ArrayList<NeighborGraph> nglist = ngMax.NeighborGraphBiSplit(footprint1, footprint2);
     		footprints.add(nglist.get(0));
     		footprints.add(nglist.get(1));
+    		
+    		boolean writeFoot = true;
+    		if (writeFoot){
+    			String filename = "data/BigStone/footprints." + footprints.size() + ".txt";
+    			this.WriteToFileBisect(filename);
+    		}
     	}//results saved to footprints list
     }
     
+    
     //new Bisecting Ensemble method
     public void Bisect(NeighborGraph ng, int k){
-    	ambi_map = new HashMap<Integer, HashMap<Integer, Double>>();
-        ArrayList<Integer> c1ids = new ArrayList<Integer>();
-        ArrayList<Integer> c2ids = new ArrayList<Integer>();
-        for (Cluster c : ng.cs.clusters.values()) {
-            if (c.label == 1) {
-                if (c.classCount < 2.5 * k) continue;
-                c1ids.add(c.id);
-            } else if (c.label == 2) {
-                if (c.classCount < 2.5 * k) continue;
-                c2ids.add(c.id);
-            }
-        }
+    	if (!ng.cs.hasBipartiteGraph){
+    		ng.cs.GenerateBipartiteGraph(k);
+    	}
+    	ambi_map = ng.cs.ambi_map;
+        ArrayList<Integer> c1ids = ng.cs.c1ids;
+        ArrayList<Integer> c2ids = ng.cs.c2ids;
 
         ng.GenerateAPSP();
         
         pairs = new ArrayList<ClusterPair>(c1ids.size() * c2ids.size());
         for (Integer c1id : c1ids) {
-            ambi_map.put(c1id, new HashMap<Integer, Double>());
             for (Integer c2id : c2ids) {
-                ambi_map.get(c1id).put(c2id, ng.cs.clusters.get(c1id).AmbiguityWithClusterKNN(ng.cs.clusters.get(c2id), k));
-                if (!ambi_map.containsKey(c2id)) ambi_map.put(c2id, new HashMap<Integer, Double>());
-                ambi_map.get(c2id).put(c1id, ambi_map.get(c1id).get(c2id));
                 pairs.add(new ClusterPair(c1id, c2id, ambi_map.get(c1id).get(c2id)));
             }
         }
@@ -246,28 +244,18 @@ public class BipartiteEnsemble {
      }
 
     public BipartiteEnsemble(NeighborGraph ng, int k, int num_patches_threshold) {
-        ambi_map = new HashMap<Integer, HashMap<Integer, Double>>();
-        ArrayList<Integer> c1ids = new ArrayList<Integer>();
-        ArrayList<Integer> c2ids = new ArrayList<Integer>();
-        for (Cluster c : ng.cs.clusters.values()) {
-            if (c.label == 1) {
-                if (c.classCount < 2.5 * k) continue;
-                c1ids.add(c.id);
-            } else if (c.label == 2) {
-                if (c.classCount < 2.5 * k) continue;
-                c2ids.add(c.id);
-            }
-        }
+    	if (!ng.cs.hasBipartiteGraph){
+    		ng.cs.GenerateBipartiteGraph(k);
+    	}
+        ambi_map = ng.cs.ambi_map;
+        ArrayList<Integer> c1ids = ng.cs.c1ids;
+        ArrayList<Integer> c2ids = ng.cs.c2ids;
 
         ng.GenerateAPSP();
 
         pairs = new ArrayList<ClusterPair>(c1ids.size() * c2ids.size());
         for (Integer c1id : c1ids) {
-            ambi_map.put(c1id, new HashMap<Integer, Double>());
             for (Integer c2id : c2ids) {
-                ambi_map.get(c1id).put(c2id, ng.cs.clusters.get(c1id).AmbiguityWithClusterKNN(ng.cs.clusters.get(c2id), k));
-                if (!ambi_map.containsKey(c2id)) ambi_map.put(c2id, new HashMap<Integer, Double>());
-                ambi_map.get(c2id).put(c1id, ambi_map.get(c1id).get(c2id));
                 pairs.add(new ClusterPair(c1id, c2id, ambi_map.get(c1id).get(c2id)));
             }
         }

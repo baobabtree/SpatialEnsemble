@@ -1,4 +1,5 @@
 require(raster)
+require(rpart)
 set.seed(ceiling(sqrt(4301901)))
 ref = raster("BigStone/ref.tif")
 features = stack("BigStone/features.tif")
@@ -17,9 +18,9 @@ trainDryRep=sample(loc.raster[ref==0],N)
 trainRep = c(trainWetRep, trainDryRep)
 
 #sample 2: systematic clustered sampling
-num.per.cell = 2;
+num.per.cell = 1;
 all.cell.number=1:(ref@ncols*ref@nrows)
-grid.size=100
+grid.size=50
 grid.nrows=ceiling(ref@nrows/grid.size)
 grid.ncols=ceiling(ref@ncols/grid.size)
 i.vec=rep(1:ref@nrows,each=ref@ncols)
@@ -50,9 +51,6 @@ input[,5] = input[,5] +1;
 input[is.na(values(train)), 5] = 0
 write.table(input, "~/Research/CodeRepository/SpatialDecompose/data/BigStone/input.txt",sep=",", row.n=F, col.n=F)
 
-newinput=cbind(input[,1:4],textures[,1:4],input[,5:7]);
-write.table(newinput, "~/Research/CodeRepository/SpatialDecompose/data/Chanhassen/chanhassen.texture.input.txt",sep=",", row.n=F, col.n=F)
-
 #read filtered points
 data=read.table("BigStone/input.texture.txt",sep=",")
 data[,9] = values(ref) + 1;
@@ -60,7 +58,7 @@ data[is.na(values(train)),9] = 0;
 #write.table(data,"BigStone/input.texture.txt",sep=",", row.n=F, col.n=F)
 
 #read clusters: (pid, cid, label)
-cls = read.table("BigStone/cluster.txt",sep=",")
+cls = read.table("BigStone/cluster.800.txt",sep=",")
 cluster.ids=unique(cls[,2])
 dict=array(0,max(cluster.ids)+1)
 dict[cluster.ids+1]=sample(length(cluster.ids))
@@ -74,7 +72,7 @@ dev.new();plot(c.map,col=jet.colors(length(cluster.ids)))
 
 
 #read footprints from last BipartiteEnsemble with fid-cid
-footprints = read.table("~/Research/CodeRepository/SpatialDecompose/data/BigStone/footprints.txt", sep=",");
+footprints = read.table("BigStone/footprints.txt", sep=",");
 footprint.map = ref;
 footprint.map[1:ncell(ref)]=NA
 for(fid in unique(footprints[,1])){
@@ -84,9 +82,19 @@ for(fid in unique(footprints[,1])){
 }
 dev.new();plot(footprint.map, col=c("red","green"))
 
+for(i in 1:2){
+	data.i = data[values(footprint.map)==i,1:9];
+	train.i = data.i[data.i[,9]>0,1:9]
+	ref.i = ref[values(footprint.map)==i]
+	dt.i = rpart(V9~., data=train.i, method="class");
+	dt.pred.i = predict(dt.i, newdata = data.i, type="class")
+	res.i = table(ref.i, dt.pred.i);
+	print(res.i)
+	#res = res + res.i;
+}
 
 #read footprints from BisectSpatialEnsemble fid-pid
-footprints = read.table("~/Research/CodeRepository/SpatialDecompose/data/BigStone/footprints.txt",sep=",")
+footprints = read.table("BigStone/footprints.txt",sep=",")
 footprint.map = ref;
 footprint.map[1:ncell(ref)]=NA
 for(fid in unique(footprints[,1])){
@@ -101,13 +109,21 @@ for(i in unique(footprints[,1])){
 	data.i = data[footprints[footprints[,1]==i,2]+1,];
 	train.i = data.i[data.i[,9]>0,1:9]
 	ref.i = ref[footprints[footprints[,1]==i,2]+1]
-	dt.i = rpart(V9~., data=train.i, method="class");
-	dt.pred.i = predict(dt.i, newdata = data.i, type="class")
-	res.i = table(ref.i, dt.pred.i);
-	print(res.i)
-	#res = res + res.i;
-}
+	if(length(unique(train.i[,9]))==1){
+		dt.pred.i = rep(unique(train.i[,9]), length=nrow(data.i)) ;
+		res.i = matrix(0,nr=2,nc=2);
+		res.i[,unique(train.i[,9])] = as.numeric(table(ref.i));
+	}
+	else{
+		dt.i = rpart(V9~., data=train.i, method="class");
+		dt.pred.i = predict(dt.i, newdata = data.i, type="class");	
+		res.i = table(ref.i, dt.pred.i);
+	}
 
+	print(res.i)
+	res = res + as.matrix(res.i);
+}
+print(res)
 
 
 
@@ -118,6 +134,7 @@ train.map = ref; train.map[data[,9]>0] = NA; dev.new(); plot(train.map, col=c("r
 require(rpart)
 dt = rpart(V9~., data=data[data[,9]>0,1:9],method="class");
 dt.pred = predict(dt, newdata = data[,1:9],type="class")
+table(values(ref),dt.pred)
 dt.map = ref; 
 dt.map[1:ncell(ref)] = as.numeric(dt.pred)-1;
 dt.map[dt.map==0&ref==1] = 2;

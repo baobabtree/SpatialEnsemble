@@ -163,6 +163,14 @@ public class NeighborGraph {
     	nglist.add(ng1);
     	nglist.add(ng2);
     	
+    	//compute ambiguity pair map
+    	if (!ng1.cs.hasBipartiteGraph){
+    		ng1.cs.InheritBipartiteGraph(this.cs);
+    	}
+    	if (!ng2.cs.hasBipartiteGraph){
+    		ng2.cs.InheritBipartiteGraph(this.cs);
+    	}
+    	
     	return nglist;
     }
     
@@ -362,80 +370,11 @@ public class NeighborGraph {
         return maxCid+1;
     }
     
-    private int MergeTwoCluster(int ci, int cj) {
-        // the actual process to merge two clusters
-
-        double dist = 0;
-        // the number of points in the original ci and cj
-        int ci_node_num = cs.clusters.get(ci).points.size();
-        int cj_node_num = cs.clusters.get(cj).points.size();
-
-        // update neighborhood graph
-        // remove ci and cj from each other's list
-        graph.get(ci).neighborList.remove(cj);
-        graph.get(cj).neighborList.remove(ci);
-        // the adjacent nodes of ci and cj
-        AdjacencyNode ani = graph.get(ci);
-        AdjacencyNode anj = graph.get(cj);
-
-        // new neighbor list of ci
-        HashMap<Integer, Double> new_neighborList = new HashMap<Integer, Double>();
-
-        for (Integer cineigh : ani.neighborList.keySet()) {
-            if (new_neighborList.containsKey(cineigh)) {
-                continue;
-            }
-
-            int cineigh_node_num = cs.clusters.get(cineigh).points.size();
-
-            if (anj.neighborList.containsKey(cineigh)) {
-                new_neighborList.put(cineigh, (ani.neighborList.get(cineigh) * ci_node_num * cineigh_node_num
-                        + anj.neighborList.get(cineigh) * cj_node_num * cineigh_node_num)
-                        / (ci_node_num * cineigh_node_num + cj_node_num * cineigh_node_num));
-            } else {
-                new_neighborList.put(cineigh, (ani.neighborList.get(cineigh) * ci_node_num * cineigh_node_num
-                        + cs.clusters.get(cj).SimilarityWithCluster(cs.clusters.get(cineigh)) * cj_node_num * cineigh_node_num)
-                        / (ci_node_num * cineigh_node_num + cj_node_num * cineigh_node_num));
-            }
-        }
-        for (Integer cjneigh : anj.neighborList.keySet()) {
-            // remove cj from its neighbors' lists
-            graph.get(cjneigh).neighborList.remove(cj);
-
-            if (new_neighborList.containsKey(cjneigh)) {
-                continue;
-            }
-
-            int cjneigh_node_num = cs.clusters.get(cjneigh).points.size();
-
-            if (ani.neighborList.containsKey(cjneigh)) {
-                new_neighborList.put(cjneigh, (ani.neighborList.get(cjneigh) * ci_node_num * cjneigh_node_num
-                        + anj.neighborList.get(cjneigh) * cj_node_num * cjneigh_node_num)
-                        / (ci_node_num * cjneigh_node_num + cj_node_num * cjneigh_node_num));
-            } else {
-                new_neighborList.put(cjneigh, (cs.clusters.get(ci).SimilarityWithCluster(cs.clusters.get(cjneigh)) * ci_node_num * cjneigh_node_num
-                        + anj.neighborList.get(cjneigh) * cj_node_num * cjneigh_node_num)
-                        / (ci_node_num * cjneigh_node_num + cj_node_num * cjneigh_node_num));
-            }
-        }
-        for (Integer cineigh : new_neighborList.keySet()) {
-            dist = new_neighborList.get(cineigh);
-            graph.get(ci).neighborList.put(cineigh, dist);
-            graph.get(cineigh).neighborList.put(ci, dist);
-        }
-        graph.remove(cj);
-
-        //System.out.println("merge cluster " + ci + " and cluster " + cj);
-        //merge cj into ci, remove cluster cj
-        cs.clusters.get(ci).MergeWithCluster(cs.clusters.get(cj));
-        cs.clusters.remove(cj);
-
-        return ci;
-    }
+  
     
     //not tested!
-    public int RemoveHoles(int minSize){
-    	int maxId = cs.clusters.size();
+    public int RemoveHoles(int minSize, int maxId){
+    	
     	HashSet<Integer> holes = new HashSet<Integer>();
     	for(Integer cid : cs.clusters.keySet()){
 			if( cs.clusters.get(cid).points.size() < minSize ){
@@ -447,17 +386,24 @@ public class NeighborGraph {
     		//merge cid with its neighbors
     		int largestNeigh = -1; int largestNeighSize = -1;
 			for(Integer nid : graph.get(cid).neighborList.keySet()){
+				if( cs.clusters.get(nid).label * cs.clusters.get(cid).label != 0 
+						&& cs.clusters.get(cid).label != cs.clusters.get(nid).label ){
+					continue;
+				}
 				if( cs.clusters.get(nid).points.size() > largestNeighSize ){
 					largestNeighSize = cs.clusters.get(nid).points.size();
 					largestNeigh = nid;
 				}
 			}
 			
-			maxId = MergeTwoClusterNewNode(cid, largestNeigh, maxId);//return last used maxId
-			if( holes.contains(largestNeigh) ){
-				holes.remove(largestNeigh);
-				holes.add(maxId);
+			if(largestNeigh != -1 ){
+				maxId = MergeTwoClusterNewNode(cid, largestNeigh, maxId);//return last used maxId
+				if( holes.contains(largestNeigh) ){
+					holes.remove(largestNeigh);
+					holes.add(maxId);
+				}
 			}
+			holes.remove(cid);
     	}
     	
 		return maxId;
@@ -466,22 +412,40 @@ public class NeighborGraph {
     public boolean HMergeLazy(int m) {
     	PriorityQueue<PatchPair> PQ = new PriorityQueue();
     	HashSet<Integer> obsoleteCids = new HashSet<Integer>();
-    	int nextSize = cs.clusters.size(); //when cluster.size reach this number, redo PriorityQueue
     	PQ.add(new PatchPair(0,0,0)); //dummy element for stop criteria
     	int maxId = cs.clusters.size(); // last maxid taken
     	
-    	int checkSize = (int) (cs.clusters.size() * 0.1); //used for cleanup small holes
+    	int nextSize = cs.clusters.size(); //when cluster.size reach this number, redo PriorityQueue
+    	int checkMinSize = (int) (cs.clusters.size() * 0.05); //used for cleanup small holes
     	int minSize = 30; //size threshold for small holes
     	
     	while( cs.clusters.size() > m && !PQ.isEmpty() ){
     		//add in a step to remove holes
-    		if( cs.clusters.size() == checkSize ){
+    		if( cs.clusters.size() == checkMinSize ){
     			//remove small whole; TBD
-    			maxId = RemoveHoles(minSize);
-    			continue;
+    			int lastMaxId = maxId;
+    			maxId = RemoveHoles(minSize, maxId);
+    			if(lastMaxId != maxId){
+    				PQ.clear();
+        			obsoleteCids.clear();
+                    for (Integer cid : graph.keySet()) {
+                        AdjacencyNode an = graph.get(cid);
+                        for (Integer nid : an.neighborList.keySet()) {
+                            int labeli = cs.clusters.get(cid).label;
+                            int labelj = cs.clusters.get(nid).label;
+                            //no need to compute feature distance if different labels or id order unsatisfied
+                            if (labeli * labelj != 0 && labeli != labelj || cid > nid ) continue;
+                            PQ.add(new PatchPair(cid, nid, an.neighborList.get(nid)));
+                        }
+                    }
+                    
+                    while(cs.clusters.size() < nextSize){
+                    	nextSize = nextSize / 2;
+                    }
+    			}//since the obsolete pairs are no longer valid, should regenerate all things
     		}
     		
-    		if(cs.clusters.size() == nextSize){
+    		if(cs.clusters.size() <= nextSize){
                 //clear PQ and Reload Priority Queue
     			PQ.clear();
     			obsoleteCids.clear();
@@ -519,115 +483,19 @@ public class NeighborGraph {
     		obsoleteCids.add(pair.c2id);
     		
             if (cs.clusters.size() % 1000 == 0) System.out.println(cs.clusters.size());
+    		
+            if (cs.clusters.size() <= 2000 && cs.clusters.size() %200 == 0){
+            	int size = cs.clusters.size();
+            	String filenameC = "data/BigStone/cluster." + Integer.toString(size) + ".txt";
+            	String filenameG = "data/BigStone/graph." + Integer.toString(size) + ".txt";
+            	this.cs.WriteToFile(filenameC);
+            	this.WriteGraphToFile(filenameG);
+            }
     	}
   
         return true;
     }
-    
-    public boolean MergeClosest() {
-        //merge two closest nodes
-        double dist = Double.MAX_VALUE;
-        int ci = -1, cj = -1;
-        for (Integer cid : graph.keySet()) {
-            AdjacencyNode an = graph.get(cid);
-            for (Integer nid : an.neighborList.keySet()) {
-                int labeli = cs.clusters.get(cid).label;
-                int labelj = cs.clusters.get(nid).label;
-                if (labeli * labelj != 0 && labeli != labelj) continue;
-                if (an.neighborList.get(nid) < dist) {
-                    dist = an.neighborList.get(nid);
-                    ci = cid;
-                    cj = nid;
-                }
-            }
-        }
-
-        //find ci, cj with minimum distance, and merge larger id into smaller id
-        int tmp;
-        if (ci > cj) {
-            tmp = ci;
-            ci = cj;
-            cj = tmp;
-        }
-        if (ci == -1) {
-            System.out.println("Can't merge!");
-            return false;
-        }
-        MergeTwoCluster(ci, cj);
-
-
-        //check to remove small holes
-        //check cluster ci
-        int minPoints = 30;
-        while (true) {
-            int is_noise = IsNoise(ci);
-            if (is_noise != -1) {
-                //merge ci into ci's neighbor nid
-                //int nid = graph.get(ci).neighborList.keySet().iterator().next();
-                ci = MergeTwoCluster(is_noise, ci);
-            } else {
-                boolean allGood = true;
-                ArrayList<Integer> n_key_set = new ArrayList<Integer>(graph.get(ci).neighborList.keySet());
-                for (Integer nid : n_key_set) {
-                    //check each neighbor nid of ci
-                    //if one neighbor has problem, merge the neighbor to ci
-                    is_noise = IsNoise(nid);
-                    if (is_noise != -1) {
-                        allGood = false;
-                        MergeTwoCluster(is_noise, nid);
-                    }
-                }
-
-                if (allGood) break;
-            }
-        }
-        //check cluster ci's neighbors
-
-        return true;
-    }
-
-    private int IsNoise(int ci) {
-        // default return value is -1
-        // which means the current cluster is not a noise
-        if (graph.get(ci).neighborList.size() < 8) {
-            int to_merge_cluster = -1;
-            double ratio_max = 0;
-
-            for (Integer nid : graph.get(ci).neighborList.keySet()) {
-                int labeli = cs.clusters.get(ci).label;
-                int labelj = cs.clusters.get(nid).label;
-                if (labeli * labelj != 0 && labeli != labelj) continue;
-
-                double ratio = cs.clusters.get(nid).points.size() / cs.clusters.get(ci).points.size();
-                if (ratio > ratio_max) {
-                    ratio_max = ratio;
-                    to_merge_cluster = nid;
-                }
-            }
-
-            if (ratio_max > 50) {
-                return to_merge_cluster;
-            } else {
-                return -1;
-            }
-        } else {
-            return -1;
-        }
-    }
-
-    public void HMerge(int k) {
-        //hierarchical clustering; constraint-based or semi-supervised
-
-        while (cs.clusters.size() > k) {
-            boolean suc = this.MergeClosest();
-            if (cs.clusters.size() % 100 == 0) System.out.println(cs.clusters.size());
-            if (!suc) break;
-        }
-    }
-
-
-    
-    
+        
 }
 
 class SSSPDistance {

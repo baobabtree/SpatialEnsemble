@@ -10,6 +10,10 @@ import java.lang.Math;
 public class Clusters {
 	//list of clusters with cluster IDs
 	HashMap<Integer, Cluster> clusters;
+	boolean hasBipartiteGraph = false;
+	HashMap<Integer, HashMap<Integer, Double>> ambi_map;
+	ArrayList<Integer> c1ids;
+	ArrayList<Integer> c2ids;
 	
 	public Clusters(){
 		clusters = new HashMap<Integer, Cluster>();
@@ -142,6 +146,108 @@ public class Clusters {
 		return c.AmbiguityWithClusterKNN(c, k);
 	}
 	
+	public boolean InheritBipartiteGraph(Clusters cls){
+		if (!cls.hasBipartiteGraph) return false;
+		if (this.hasBipartiteGraph) return true;
+		
+		//otherwise, inherit from parent clusters
+		ambi_map = new HashMap<Integer, HashMap<Integer, Double>>();
+		c1ids = new ArrayList<Integer>();
+        c2ids = new ArrayList<Integer>();
+        for (Cluster c : clusters.values()) {
+            if (cls.c1ids.contains(c.id)) {
+                c1ids.add(c.id);
+            } else if (cls.c2ids.contains(c.id)) {
+                c2ids.add(c.id);
+            }
+        }
+        
+        for (Integer c1id : c1ids) {
+            ambi_map.put(c1id, new HashMap<Integer, Double>());
+            for (Integer c2id : c2ids) {
+                ambi_map.get(c1id).put(c2id, cls.ambi_map.get(c1id).get(c2id));
+                if (!ambi_map.containsKey(c2id)) ambi_map.put(c2id, new HashMap<Integer, Double>());
+                ambi_map.get(c2id).put(c1id, cls.ambi_map.get(c1id).get(c2id));
+            }
+        }
+        hasBipartiteGraph = true;
+        return true;
+	}
+	
+	public void GenerateBipartiteGraph(int k){
+		ambi_map = new HashMap<Integer, HashMap<Integer, Double>>();
+		c1ids = new ArrayList<Integer>();
+        c2ids = new ArrayList<Integer>();
+        for (Cluster c : clusters.values()) {
+            if (c.label == 1) {
+                if (c.classCount < 5 * k) continue;
+                c1ids.add(c.id);
+            } else if (c.label == 2) {
+                if (c.classCount < 5 * k) continue;
+                c2ids.add(c.id);
+            }
+        }
+        
+        for (Integer c1id : c1ids) {
+            ambi_map.put(c1id, new HashMap<Integer, Double>());
+            for (Integer c2id : c2ids) {
+                ambi_map.get(c1id).put(c2id, clusters.get(c1id).AmbiguityWithClusterKNN(clusters.get(c2id), k));
+                if (!ambi_map.containsKey(c2id)) ambi_map.put(c2id, new HashMap<Integer, Double>());
+                ambi_map.get(c2id).put(c1id, ambi_map.get(c1id).get(c2id));
+            }
+        }
+        hasBipartiteGraph = true;
+	}
+	
+	public Double MaxPairwiseKNNAmbiguity(int k){
+		if (!hasBipartiteGraph){
+			GenerateBipartiteGraph(k);
+		}
+		
+        double ambi = 0;
+        double ambiCid = 0;
+        
+        for (Integer cid : ambi_map.keySet()){
+        	ambiCid = 0;
+        	for (Integer c2id : ambi_map.get(cid).keySet()){
+        		if (ambi_map.get(cid).get(c2id) > ambiCid){
+        			ambiCid = ambi_map.get(cid).get(c2id);
+        		}
+        	}
+        	if( ambiCid > ambi){
+        		ambi = ambiCid;
+        	}
+        }
+        
+        return ambi;
+	}
+	
+	public Double AvgPairwiseKNNAmbiguity(int k){
+		if (!hasBipartiteGraph){
+			GenerateBipartiteGraph(k);
+		}
+		
+        double ambi = 0;
+        double ambiCid = 0;
+        int sizeCid = 0;
+        int count = 0;
+        
+        for (Integer cid : ambi_map.keySet()){
+        	ambiCid = 0;
+        	sizeCid = 0;
+        	for (Integer c2id : ambi_map.get(cid).keySet()){
+        		if (ambi_map.get(cid).get(c2id) > ambiCid){
+        			ambiCid = ambi_map.get(cid).get(c2id);
+        			sizeCid = clusters.get(cid).labeledPoints.size() 
+        					+ clusters.get(c2id).labeledPoints.size();
+        		}
+        	}
+        	ambi += ambiCid * sizeCid;
+        	count += sizeCid;
+        }
+        
+        return ambi/count;
+	}
 }
 
 
