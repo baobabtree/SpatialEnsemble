@@ -41,14 +41,8 @@ public class semiSpatialCluster {
         ng.cs.WriteToFile(cluster_file_path);
         ng.WriteGraphToFile(graph_file_path);*/
         
-        
         cs.ReadFromOutputFile(cluster_file_path, points);
         NeighborGraph ng = new NeighborGraph(cs, graph_file_path);
-        
-        
-
-        //BipartiteEnsemble be = new BipartiteEnsemble(ng, k, num_Zone);
-        //be.WriteToFile(output_file_path);
         
         BipartiteEnsemble be2 = new BipartiteEnsemble(ng, k, num_Zone, true);
         be2.WriteToFileBisect(output_file_path);
