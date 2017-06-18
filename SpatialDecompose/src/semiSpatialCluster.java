@@ -20,6 +20,7 @@ public class semiSpatialCluster {
         String output_file_path = "data/BigStone/footprints.txt";//"Data/toyExample/toy.footprints.txt";
         
         
+        
         //almost fixed parameters
         int r = 1;
         int k = 10; // number of nearest neighbor
