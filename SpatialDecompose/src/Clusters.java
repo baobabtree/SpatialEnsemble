@@ -180,10 +180,10 @@ public class Clusters {
         c2ids = new ArrayList<Integer>();
         for (Cluster c : clusters.values()) {
             if (c.label == 1) {
-                if (c.classCount < 5 * k) continue;
+                if (c.classCount < 1.5 * k) continue;
                 c1ids.add(c.id);
             } else if (c.label == 2) {
-                if (c.classCount < 5 * k) continue;
+                if (c.classCount < 1.5 * k) continue;
                 c2ids.add(c.id);
             }
         }

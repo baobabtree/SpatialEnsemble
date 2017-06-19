@@ -46,9 +46,9 @@ public class BipartiteEnsemble {
     		footprints.add(nglist.get(0));
     		footprints.add(nglist.get(1));
     		
-    		boolean writeFoot = true;
+    		boolean writeFoot = false;
     		if (writeFoot){
-    			String filename = "data/BigStone/footprints." + footprints.size() + ".txt";
+    			String filename = "data/Chanhassen/footprints." + footprints.size() + ".txt";
     			this.WriteToFileBisect(filename);
     		}
     	}//results saved to footprints list

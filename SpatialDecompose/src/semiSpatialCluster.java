@@ -12,24 +12,27 @@ public class semiSpatialCluster {
         String output_file_path = args[4];
         int k = Integer.parseInt(args[5]); // number of nearest neighbor
         int num_patches = Integer.parseInt(args[6]); // maximal number of patches */
+    	
+    	//several internal parameters to remember
+    	//1. in cluster.KNNAmbiguity: 1.5*k or 5*k for minimum number of samples per patch to consider
+    	//2. in Bipartite Ensemble whether to write footprints and file names
+    	//3. in Neighborgraph HMergeLazy whether to write clusters and file names
         
     	//parameter settings below
-        String input_file_path = "data/BigStone/input.texture.txt";//"Data/toyExample/toy.input.txt";
-        String cluster_file_path = "data/BigStone/cluster.800.txt";//"Data/toyExample/toy.cluster.txt";
-        String graph_file_path = "data/BigStone/graph.800.txt";//"Data/toyExample/toy.graph.txt";
-        String output_file_path = "data/BigStone/footprints.txt";//"Data/toyExample/toy.footprints.txt";
-        
-        
+        String input_file_path = "data/Chanhassen/input.texture.txt";//"Data/toyExample/toy.input.txt";
+        String cluster_file_path = "data/Chanhassen/cluster.txt";//"Data/toyExample/toy.cluster.txt";
+        String graph_file_path = "data/Chanhassen/graph.txt";//"Data/toyExample/toy.graph.txt";
+        String output_file_path = "data/Chanhassen/footprints.txt";//"Data/toyExample/toy.footprints.txt";
         
         //almost fixed parameters
         int r = 1;
         int k = 10; // number of nearest neighbor
-        int num_Zone = 50; // final number of zones
+        int num_Zone = 10; // final number of zones
         
         int n_feature = 8;
-        int nr = 718;
-        int nc = 830;
-        int np = 800; // number of patches in inputs
+        int nr = 221;
+        int nc = 374;
+        int np = 100; // number of patches in inputs
         
         
         //create clusters
@@ -46,7 +49,7 @@ public class semiSpatialCluster {
         NeighborGraph ng = new NeighborGraph(cs, graph_file_path);
         
         BipartiteEnsemble be2 = new BipartiteEnsemble(ng, k, num_Zone, true);
-        be2.WriteToFileBisect(output_file_path);
+        be2.WriteToFileBisect(output_file_path);	
         
     }
 }

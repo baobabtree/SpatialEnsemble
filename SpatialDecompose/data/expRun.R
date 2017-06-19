@@ -1,8 +1,8 @@
 require(raster)
 require(rpart)
 set.seed(ceiling(sqrt(4301901)))
-ref = raster("BigStone/ref.tif")
-features = stack("BigStone/features.tif")
+ref = raster("Chanhassen/ref.img")
+features = stack("Chanhassen/spectral.img")
 
 nc = ref@ncols
 loc = 1:ncell(ref)
@@ -13,14 +13,16 @@ input = data.frame(values(features[[1]]), values(features[[2]]), values(features
 
 
 #sample 1: Clustered Sampling
-trainWetRep=sample(loc.raster[ref==1],N)
-trainDryRep=sample(loc.raster[ref==0],N)
-trainRep = c(trainWetRep, trainDryRep)
+# N = 30
+# trainWetRep=sample(loc.raster[ref==1],N)
+# trainDryRep=sample(loc.raster[ref==0],N)
+# trainRep = c(trainWetRep, trainDryRep)
 
 #sample 2: systematic clustered sampling
 num.per.cell = 1;
 all.cell.number=1:(ref@ncols*ref@nrows)
 grid.size=50
+N = 2
 grid.nrows=ceiling(ref@nrows/grid.size)
 grid.ncols=ceiling(ref@ncols/grid.size)
 i.vec=rep(1:ref@nrows,each=ref@ncols)
@@ -31,7 +33,7 @@ grid.number=(i.grid.vec-1)*grid.ncols+j.grid.vec
 trainRep = NULL;
 for(g in 1:(grid.nrows*grid.ncols)){
 	#randomly select several samples
-	trainRep.g = sample(all.cell.number[grid.number==g], 2)
+	trainRep.g = sample(all.cell.number[grid.number==g], N)
 	trainRep = c(trainRep, trainRep.g);
 	#grid.majority.class[g]=modal(ref[which(grid.number==g)])
 }
@@ -39,26 +41,29 @@ for(g in 1:(grid.nrows*grid.ncols)){
 #clustered sample
 train=ref;
 train[1:ncell(train)]=NA
-N = 30
 loc.raster = ref
 loc.raster[1:ncell(ref)]=loc
 train[c(trainRep)]=1
 radius=21
 train=buffer(train,width=radius) #note here the width is meters, b/3=no.of.cell
-dev.new(); plot(train)
+dev.new(); plot(train, col=c("red","green"))
+#plot training set locations
+train.map = ref; train.map[data[,9]>0] = NA; 
+dev.new(); plot(train.map, col=c("red","green"))
+
 
 input[,5] = input[,5] +1;
 input[is.na(values(train)), 5] = 0
-write.table(input, "~/Research/CodeRepository/SpatialDecompose/data/BigStone/input.txt",sep=",", row.n=F, col.n=F)
+write.table(input, "Chanhassen/input.txt",sep=",", row.n=F, col.n=F)
 
 #read filtered points
-data=read.table("BigStone/input.texture.txt",sep=",")
+data=read.table("Chanhassen/input.texture.txt",sep=",")
 data[,9] = values(ref) + 1;
 data[is.na(values(train)),9] = 0;
-#write.table(data,"BigStone/input.texture.txt",sep=",", row.n=F, col.n=F)
+#write.table(data,"Chanhassen/input.texture.txt",sep=",", row.n=F, col.n=F)
 
 #read clusters: (pid, cid, label)
-cls = read.table("BigStone/cluster.800.txt",sep=",")
+cls = read.table("Chanhassen/cluster.txt",sep=",")
 cluster.ids=unique(cls[,2])
 dict=array(0,max(cluster.ids)+1)
 dict[cluster.ids+1]=sample(length(cluster.ids))
@@ -71,30 +76,8 @@ jet.colors <-
 dev.new();plot(c.map,col=jet.colors(length(cluster.ids)))
 
 
-#read footprints from last BipartiteEnsemble with fid-cid
-footprints = read.table("BigStone/footprints.txt", sep=",");
-footprint.map = ref;
-footprint.map[1:ncell(ref)]=NA
-for(fid in unique(footprints[,1])){
-	for(cid in footprints[footprints[,1]==fid,2]){
-		footprint.map[cls[cls[,2]==cid,1] + 1] = fid;
-	}
-}
-dev.new();plot(footprint.map, col=c("red","green"))
-
-for(i in 1:2){
-	data.i = data[values(footprint.map)==i,1:9];
-	train.i = data.i[data.i[,9]>0,1:9]
-	ref.i = ref[values(footprint.map)==i]
-	dt.i = rpart(V9~., data=train.i, method="class");
-	dt.pred.i = predict(dt.i, newdata = data.i, type="class")
-	res.i = table(ref.i, dt.pred.i);
-	print(res.i)
-	#res = res + res.i;
-}
-
 #read footprints from BisectSpatialEnsemble fid-pid
-footprints = read.table("BigStone/footprints.txt",sep=",")
+footprints = read.table("Chanhassen/footprints.3.txt",sep=",")
 footprint.map = ref;
 footprint.map[1:ncell(ref)]=NA
 for(fid in unique(footprints[,1])){
@@ -127,8 +110,6 @@ print(res)
 
 
 
-#plot training set locations
-train.map = ref; train.map[data[,9]>0] = NA; dev.new(); plot(train.map, col=c("red","green"))
 
 #test decision tree
 require(rpart)

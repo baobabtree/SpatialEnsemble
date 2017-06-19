@@ -184,11 +184,11 @@ public class Texture {
 	}
 	
 	public static void main(String[] args){
-		String infilename = "data/BigStone/input.txt";
-		String outfilename = "data/BigStone/input.texture.txt";
+		String infilename = "data/SwanLake/input.txt";
+		String outfilename = "data/SwanLake/input.texture.txt";
 		int nf = 4;
-		int nr = 718;
-		int nc = 830;
+		int nr = 1986;
+		int nc = 997;
 		int w = 2;
 		int numBins = 32;
 		

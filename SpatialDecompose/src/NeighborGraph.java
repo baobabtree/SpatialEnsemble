@@ -486,8 +486,8 @@ public class NeighborGraph {
     		
             if (cs.clusters.size() <= 2000 && cs.clusters.size() %200 == 0){
             	int size = cs.clusters.size();
-            	String filenameC = "data/BigStone/cluster." + Integer.toString(size) + ".txt";
-            	String filenameG = "data/BigStone/graph." + Integer.toString(size) + ".txt";
+            	String filenameC = "data/Chanhassen/cluster." + Integer.toString(size) + ".txt";
+            	String filenameG = "data/Chanhassen/graph." + Integer.toString(size) + ".txt";
             	this.cs.WriteToFile(filenameC);
             	this.WriteGraphToFile(filenameG);
             }
