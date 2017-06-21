@@ -1,5 +1,6 @@
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -20,7 +21,8 @@ public class BipartiteEnsemble {
     int footprintSize2 = 0;
     
     
-    public BipartiteEnsemble(NeighborGraph ng, int k, int m, String outputFileDir){
+    public BipartiteEnsemble(NeighborGraph ng, int m, int k, double alphaVal, String outputFileDir){
+    	alpha = alphaVal;
     	footprints = new ArrayList<NeighborGraph>();
     	footprints.add(ng);
     	while(footprints.size() < m){
@@ -315,53 +317,6 @@ public class BipartiteEnsemble {
                     }
                 }
             }// end of try-catch    	
-    }
-    
-    
-    public void WriteTrainTestFiles(String fileDir, String refFile){
-    	//part 1: read class labels of entire map by right order
-    	ArrayList<Integer> classes = new ArrayList<Integer>(10000);
-		BufferedReader br = null;
-		String line = "";
-		try {
-			br = new BufferedReader(new FileReader(refFile));			
-			while ((line = br.readLine()) != null) {
-				classes.add(Integer.parseInt(line));
-			}
-
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		} finally {
-			if (br != null) {
-				try {
-					br.close();
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-			}
-		}
-		
-		//part 2: write training and test samples in each footprints
-    	for(int i = 0; i < footprints.size(); i++){
-    		String trainFile = fileDir + "train." + Integer.toString(i) + ".csv";
-    		String testFile = fileDir + "test." + Integer.toString(i) + ".csv";
-    		HashSet<Point> trainSet = new HashSet<Point>();
-    		HashSet<Point> testSet = new HashSet<Point>();
-    		for(Cluster c : footprints.get(i).cs.clusters.values()){
-    			for(Point p : c.points){
-    				if(p.label == 0){
-    					testSet.add(p);
-    				}
-    				else{
-    					trainSet.add(p);
-    				}
-    			}
-    		}//finish load training and test set in footprint i
-    		WriteSamplesToCSVFile(trainSet, classes, trainFile);
-    		WriteSamplesToCSVFile(testSet, classes, testFile);
-    	}//finish writing training and test set in footprint i
     }
     
 }

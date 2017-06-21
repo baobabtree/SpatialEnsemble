@@ -22,21 +22,23 @@ public class semiSpatialCluster {
         String input_file_path = "data/Chanhassen/input.texture.txt";//"Data/toyExample/toy.input.txt";
         String cluster_file_path = "data/Chanhassen/cluster.txt";//"Data/toyExample/toy.cluster.txt";
         String graph_file_path = "data/Chanhassen/graph.txt";//"Data/toyExample/toy.graph.txt";
-        String outputDir = "";// "data/Chanhassen/";
+        String outputDir = "data/Experiment/";// "data/Chanhassen/";
         
-        //almost fixed parameters
-        int r = 1;
-        int k = 10; // number of nearest neighbor
-        int num_Zone = 10; // final number of zones
-        
+        //parameters related to input data
         int n_feature = 8;
         int nr = 221;
         int nc = 374;
-        int np = 100; // number of patches in inputs
         
-        //secondary parameter list
-        int minPatchSize = 30;
-        int step = 100;
+        //parameters related to homogeneous patch generation
+        int np = 100; // number of patches
+        int minPatchSize = 30; //remove holes: turned off if minPatchSize is 1
+        int step = 100; //option for file writing, every other "step" count
+        int r = 1;
+        
+        //parameters related to footprint (zone) grouping
+        int k = 10; // number of nearest neighbor
+        double alpha = 0.9;
+        int num_Zone = 10; // final number of zones
         
         
         //create clusters
@@ -52,7 +54,7 @@ public class semiSpatialCluster {
         //cs.ReadFromOutputFile(cluster_file_path, points);
         //NeighborGraph ng = new NeighborGraph(cs, graph_file_path);
         
-        BipartiteEnsemble be2 = new BipartiteEnsemble(ng, k, num_Zone, outputDir);
+        BipartiteEnsemble be2 = new BipartiteEnsemble(ng, num_Zone, k, alpha, outputDir);
         //be2.WriteFootprintsToFile(output_file_path);	
         
     }

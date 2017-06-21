@@ -12,7 +12,9 @@ import weka.filters.unsupervised.attribute.NumericToNominal;
 import weka.classifiers.Evaluation;
 import weka.classifiers.trees.J48;
 import java.io.*;
-
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.*;
 public class LocalModel {
 	
 	public static void LocalLearningTree(String trainFile, String testFile, int fDim, String[] options){
@@ -54,6 +56,79 @@ public class LocalModel {
 		}
 	}
 	
+	
+    public void WriteTrainTestFiles(String inputPointFile, int fDim, String refFile, String footprintFile, String outputCSVStem){
+    	//read input points
+    	ArrayList<Point> points = Point.ReadPointFile(inputPointFile, fDim);
+    	ArrayList<Integer> classes = ReadClasses(refFile);
+    	HashMap<Integer,HashSet<Integer>> footprint = ReadFootprint(footprintFile);
+    	for(Integer fid : footprint.keySet()){
+    		//TBD
+    	}
+
+    }
+    
+    public static HashMap<Integer,HashSet<Integer>> ReadFootprint(String footprintFile){
+    	//part 1: read class labels of entire map by right order
+    	HashMap<Integer,HashSet<Integer>> footprint = new HashMap<Integer,HashSet<Integer>>();
+		BufferedReader br = null;
+		String line = "";
+		
+		try {
+			br = new BufferedReader(new FileReader(footprintFile));			
+			while ((line = br.readLine()) != null) {
+				String[] fields = line.split(",");
+				int pid = Integer.parseInt(fields[1]);
+				int fid = Integer.parseInt(fields[0]);
+				if (!footprint.containsKey(fid)){
+					footprint.put(fid, new HashSet<Integer>());
+				}
+				footprint.get(fid).add(pid);
+			}
+
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		} finally {
+			if (br != null) {
+				try {
+					br.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+		return footprint;
+    }
+	
+    public static ArrayList<Integer> ReadClasses(String refFile){
+    	//part 1: read class labels of entire map by right order
+    	ArrayList<Integer> classes = new ArrayList<Integer>(10000);
+		BufferedReader br = null;
+		String line = "";
+		try {
+			br = new BufferedReader(new FileReader(refFile));			
+			while ((line = br.readLine()) != null) {
+				classes.add(Integer.parseInt(line));
+			}
+
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		} finally {
+			if (br != null) {
+				try {
+					br.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+		return classes;
+    }
+    
 	public static void main (String[] args){
 		LocalLearningTree("data/weka/train.csv", "data/weka/test.csv", 1, null);
 	}
