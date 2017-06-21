@@ -5,7 +5,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.lang.Math;
+
 
 public class Clusters {
 	//list of clusters with cluster IDs
