@@ -7,20 +7,18 @@ public class NeighborGraph {
     public HashMap<Integer, AdjacencyNode> graph;
 
     public Clusters cs;
-
-    public HashMap<Integer, HashMap<Integer, Integer>> APSP;
     
+    public boolean debug = true;
+
     
     public NeighborGraph() {
         graph = new HashMap<Integer, AdjacencyNode>();
         cs = new Clusters();
-        APSP = new HashMap<Integer, HashMap<Integer, Integer>>();
     }
     
     public NeighborGraph(HashMap<Integer, AdjacencyNode> g, Clusters cls) {
         graph = g;
         cs = cls;
-        APSP = new HashMap<Integer, HashMap<Integer, Integer>>();
     }
 
     public NeighborGraph(Clusters cs1, int r) {
@@ -44,14 +42,13 @@ public class NeighborGraph {
                 }
             }
         }
-        APSP = new HashMap<Integer, HashMap<Integer, Integer>>();
     }
     
     //read neighbor graph from file, assume clusters are given
     public NeighborGraph(Clusters cs1, String filename){
     	cs = cs1;
     	graph = new HashMap<Integer, AdjacencyNode>();
-    	APSP = new HashMap<Integer, HashMap<Integer, Integer>>();
+
 		BufferedReader br = null;
 		String line = "";
 		String cvsSplitBy = ",";
@@ -92,7 +89,6 @@ public class NeighborGraph {
         //each cluster is a node, check neighbors
         graph = new HashMap<Integer, AdjacencyNode>();
         cs = cls;
-        APSP = new HashMap<Integer, HashMap<Integer, Integer>>();
 
         for (Integer ci : cs.clusters.keySet()) {
             //create a node
@@ -247,58 +243,6 @@ public class NeighborGraph {
     }
 
 
-    public boolean GenerateAPSP() {
-        if (graph == null) return false;
-
-        APSP = new HashMap<Integer, HashMap<Integer, Integer>>();
-        for (Integer sid : graph.keySet()
-                ) {
-            APSP.put(sid, GenerateSSASP(sid));
-        }
-        return true;
-    }
-
-    private HashMap<Integer, Integer> GenerateSSASP(int sourceId) {
-        // sorted dictionary of distance, cluster
-        TreeMap<Integer, ArrayList<SSSPDistance>> waitingList = new TreeMap<Integer, ArrayList<SSSPDistance>>();
-        // dictionary of reached cluster, distance
-        HashMap<Integer, Integer> reachList = new HashMap<Integer, Integer>();
-
-        ArrayList<SSSPDistance> init = new ArrayList<SSSPDistance>();
-        init.add(new SSSPDistance(sourceId, 0));
-        waitingList.put(0, init);
-
-        while (waitingList.size() > 0) {
-            // extract the nearest node in the waiting list
-            ArrayList<SSSPDistance> currentList = waitingList.firstEntry().getValue();
-            SSSPDistance currentNode = currentList.get(0);
-            currentList.remove(0);
-            if (currentList.size() == 0){
-                waitingList.remove(waitingList.firstKey());
-            }
-
-            if (reachList.containsKey(currentNode.dId)) continue;
-
-            // current node has been visited
-            reachList.put(currentNode.dId, currentNode.distance);
-
-            for (Integer toNodeId : graph.get(currentNode.dId).neighborList.keySet()
-                    ) {
-                if (!reachList.containsKey(toNodeId)) {
-                    SSSPDistance toNode = new SSSPDistance(toNodeId, currentNode.distance + 1);
-                    if (waitingList.containsKey(toNode.distance)){
-                        waitingList.get(toNode.distance).add(toNode);
-                    }else {
-                        ArrayList<SSSPDistance> temp = new ArrayList<SSSPDistance>();
-                        temp.add(toNode);
-                        waitingList.put(toNode.distance, temp);
-                    }
-                }
-            }
-        }
-
-        return reachList;
-    }
 
     private int MergeTwoClusterNewNode(int ci, int cj, int maxCid) {
         // the actual process to merge two clusters
@@ -359,7 +303,6 @@ public class NeighborGraph {
             graph.get(cineigh).neighborList.put(maxCid+1, new_neighborList.get(cineigh));
         }
 
-        //System.out.println("merge cluster " + ci + " and cluster " + cj);
         //merge cj into ci, remove cluster cj
         cs.clusters.get(ci).MergeWithCluster(cs.clusters.get(cj)); //get new merged cluster
         cs.clusters.get(ci).id = maxCid + 1;
@@ -409,22 +352,21 @@ public class NeighborGraph {
 		return maxId;
     }
 
-    public boolean HMergeLazy(int m) {
-    	PriorityQueue<PatchPair> PQ = new PriorityQueue();
+    public boolean HMergeFaster(int nPatch, int minPatchSize, int step, String patchFileDir) {
+    	PriorityQueue<PatchPair> PQ = new PriorityQueue<PatchPair>();
     	HashSet<Integer> obsoleteCids = new HashSet<Integer>();
     	PQ.add(new PatchPair(0,0,0)); //dummy element for stop criteria
     	int maxId = cs.clusters.size(); // last maxid taken
     	
     	int nextSize = cs.clusters.size(); //when cluster.size reach this number, redo PriorityQueue
     	int checkMinSize = (int) (cs.clusters.size() * 0.05); //used for cleanup small holes
-    	int minSize = 30; //size threshold for small holes
     	
-    	while( cs.clusters.size() > m && !PQ.isEmpty() ){
+    	while( cs.clusters.size() > nPatch && !PQ.isEmpty() ){
     		//add in a step to remove holes
     		if( cs.clusters.size() == checkMinSize ){
     			//remove small whole; TBD
     			int lastMaxId = maxId;
-    			maxId = RemoveHoles(minSize, maxId);
+    			maxId = RemoveHoles(minPatchSize, maxId);
     			if(lastMaxId != maxId){
     				PQ.clear();
         			obsoleteCids.clear();
@@ -482,31 +424,75 @@ public class NeighborGraph {
     		obsoleteCids.add(pair.c1id);
     		obsoleteCids.add(pair.c2id);
     		
-            if (cs.clusters.size() % 1000 == 0) System.out.println(cs.clusters.size());
+    		if (debug){
+    			if (cs.clusters.size() % 1000 == 0) System.out.println(cs.clusters.size());
+    		}
     		
-            if (cs.clusters.size() <= 2000 && cs.clusters.size() %200 == 0){
-            	int size = cs.clusters.size();
-            	String filenameC = "data/Chanhassen/cluster." + Integer.toString(size) + ".txt";
-            	String filenameG = "data/Chanhassen/graph." + Integer.toString(size) + ".txt";
-            	this.cs.WriteToFile(filenameC);
-            	this.WriteGraphToFile(filenameG);
-            }
+    		if (patchFileDir != ""){
+    			if (cs.clusters.size() <= nPatch + 10 * step && (cs.clusters.size() - nPatch) % step == 0){
+                	int size = cs.clusters.size();
+                	String filenameC = patchFileDir + "cluster." + Integer.toString(size) + ".txt";
+                	String filenameG = patchFileDir + "graph." + Integer.toString(size) + ".txt";
+                	this.cs.WriteToFile(filenameC);
+                	this.WriteGraphToFile(filenameG);
+                }
+    		}
     	}
   
         return true;
     }
+    
+    public boolean HMergeBaseline(int nPatch, int minPatchSize, int step, String patchFileDir) {
+    	
+    	int maxId = cs.clusters.size(); // last maxid taken
+    	int checkMinSize = (int) (cs.clusters.size() * 0.05); //used for cleanup small holes
+    	
+    	while( cs.clusters.size() > nPatch ){
+    		//add in a step to remove holes
+    		if( cs.clusters.size() == checkMinSize ){
+    			//remove small whole; TBD
+    			maxId = RemoveHoles(minPatchSize, maxId);
+    		}    		
+    		
+    		//extract the VALID cluster(node) pair with min feature distance
+    		int minCid1 = -1, minCid2 = -1;
+    		double minDistance = Double.MAX_VALUE;
+    		for(Integer c1id : graph.keySet()){
+    			for(Integer c2id : graph.get(c1id).neighborList.keySet()){
+    				if (cs.clusters.get(c1id).label * cs.clusters.get(c2id).label > 0 
+    						&& cs.clusters.get(c1id).label != cs.clusters.get(c2id).label ){
+    					continue;
+    				}
+    				if (graph.get(c1id).neighborList.get(c2id) < minDistance){
+    					minCid1 = c1id;
+    					minCid2 = c2id;
+    					minDistance = graph.get(c1id).neighborList.get(c2id);
+    				}
+    			}
+    		}
+    		
+    		maxId = MergeTwoClusterNewNode(minCid1, minCid2, maxId);//return last used maxId
+    		
+    		if (debug){
+    			if (cs.clusters.size() % 1000 == 0) System.out.println(cs.clusters.size());
+    		}
+            
+    		if (patchFileDir != ""){
+    			if (cs.clusters.size() <= nPatch + 10 * step && (cs.clusters.size() - nPatch) % step == 0){
+                	int size = cs.clusters.size();
+                	String filenameC = patchFileDir + "cluster." + Integer.toString(size) + ".txt";
+                	String filenameG = patchFileDir + "graph." + Integer.toString(size) + ".txt";
+                	this.cs.WriteToFile(filenameC);
+                	this.WriteGraphToFile(filenameG);
+                }
+    		}
+    	}
+        return true;
+    }
+ 
         
 }
 
-class SSSPDistance {
-    public int dId;
-    public int distance;
-
-    public SSSPDistance(int id, int dist) {
-        dId = id;
-        distance = dist;
-    }
-}
 
 class AdjacencyNode {
     //Adjacency List

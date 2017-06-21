@@ -1,24 +1,26 @@
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.File;
 import java.util.*;
 import java.lang.Math;
 
 public class BipartiteEnsemble {
-    ArrayList<ClusterPair> pairs;
+	public boolean debug = true;
+	public double alpha = 0.90;
+	public ArrayList<NeighborGraph> footprints; //use NeighborGraph's to represent all footprints
+	
+	ArrayList<ClusterPair> pairs;
     HashMap<Integer, HashMap<Integer, Double>> ambi_map;
     HashSet<Integer> footprint1;
     HashSet<Integer> footprint2;
     int footprintSize1 = 0;
     int footprintSize2 = 0;
     
-    double alpha = 0.90;
-    ArrayList<NeighborGraph> footprints; //use NeighborGraph's to represent all footprints
     
-    
-    public BipartiteEnsemble(NeighborGraph ng, int k, int m, boolean flag){
+    public BipartiteEnsemble(NeighborGraph ng, int k, int m, String outputFileDir){
     	footprints = new ArrayList<NeighborGraph>();
     	footprints.add(ng);
     	while(footprints.size() < m){
@@ -35,36 +37,37 @@ public class BipartiteEnsemble {
     			}
     		} 
     		
-    		System.out.println(maxAmbi);
+    		if (debug ){
+    			System.out.println("Select a zone with max ambiguity =" +maxAmbi);
+    		}
     		
     		//bisectOneStep to split most ambiguous footprints
     		NeighborGraph ngMax = footprints.remove(maxAmbiI);
-    		Bisect(ngMax, k); //results saved in footprint1, footprint2
+    		boolean success = Bisect(ngMax, k); //results saved in footprint1, footprint2
     		
     		//split footprint graph into two subgraphs, then add to queue
     		ArrayList<NeighborGraph> nglist = ngMax.NeighborGraphBiSplit(footprint1, footprint2);
     		footprints.add(nglist.get(0));
     		footprints.add(nglist.get(1));
     		
-    		boolean writeFoot = false;
-    		if (writeFoot){
-    			String filename = "data/Chanhassen/footprints." + footprints.size() + ".txt";
-    			this.WriteToFileBisect(filename);
+    		if (outputFileDir != ""){
+    			String filename = outputFileDir + "footprints." + footprints.size() + ".txt";
+    			this.WriteFootprintsToFile(filename);
     		}
+    		
+    		if (!success) break; //cannot break zones any further!
     	}//results saved to footprints list
     }
     
     
     //new Bisecting Ensemble method
-    public void Bisect(NeighborGraph ng, int k){
+    public boolean Bisect(NeighborGraph ng, int k){
     	if (!ng.cs.hasBipartiteGraph){
     		ng.cs.GenerateBipartiteGraph(k);
     	}
     	ambi_map = ng.cs.ambi_map;
         ArrayList<Integer> c1ids = ng.cs.c1ids;
         ArrayList<Integer> c2ids = ng.cs.c2ids;
-
-        ng.GenerateAPSP();
         
         pairs = new ArrayList<ClusterPair>(c1ids.size() * c2ids.size());
         for (Integer c1id : c1ids) {
@@ -75,21 +78,30 @@ public class BipartiteEnsemble {
         Collections.sort(pairs, Collections.reverseOrder());
         
         //debug: print out all pairs
-        for(ClusterPair pair : pairs){
-        	if(pair.amb > 0.05){
-        		System.out.println(pair.c1id + "," + pair.c2id + ":" + pair.amb);
-        	}
-        	else {
-        		break;
-        	}
+        if (debug){
+        	for(ClusterPair pair : pairs){
+            	if(pair.amb > 0.05){
+            		System.out.println(pair.c1id + "," + pair.c2id + ":" + pair.amb);
+            	}
+            	else {
+            		break;
+            	}
+            }
         }
+        
 
         footprint1 = new HashSet<Integer>();
         footprint2 = new HashSet<Integer>();
         footprintSize1 = 0;
         footprintSize2 = 0;
         
+        //pairs may be empty! particularly when only one label! 
+        //In that case, randomly assign a labeled patch
         Iterator<ClusterPair> pairIter = pairs.iterator();
+        if (!pairIter.hasNext()){
+        	System.out.println("We cannot split the area into more zones! no ambiguity exist within zones!");
+        	return false;
+        }
         ClusterPair cp = pairIter.next();
         footprint1.add(cp.c1id);
         footprint2.add(cp.c2id);
@@ -216,7 +228,10 @@ public class BipartiteEnsemble {
     			}
         	}//end of checking nodes in frontier 2
         	
-        	System.out.println("footprint " + maxFid + " adds node " + maxNid);
+        	if (debug){
+        		System.out.println("footprint " + maxFid + " adds node " + maxNid);
+        	}
+        	
         	
         	if( maxFid == 1 ){
         		footprint1.add(maxNid);
@@ -241,15 +256,13 @@ public class BipartiteEnsemble {
         		footprintSize2 += ng.cs.clusters.get(maxNid).points.size();
         	}//end: adding node to footprint and updating frontier
         }//end of adding all nodes to footprints
+        return true;
      }
 
     
-    public void WriteToFileBisect(String filename) {
-    	
+    public void WriteFootprintsToFile(String filename) {    	
     	BufferedWriter bw = null;
-    	
-    		
-    		try {
+    	try {
                 bw = new BufferedWriter(new FileWriter(filename));
             	for(int i = 1; i <= footprints.size(); i ++){
             		//bw.write("Footprint1:\n");
@@ -273,9 +286,82 @@ public class BipartiteEnsemble {
                         e.printStackTrace();
                     }
                 }
-            }
-    		
-    	
+            }// end of try-catch    	
+    }
+    
+    public void WriteSamplesToCSVFile(HashSet<Point> set, ArrayList<Integer> classes, String filename) {    	
+    	BufferedWriter bw = null;
+    	try {
+                bw = new BufferedWriter(new FileWriter(filename));
+            	for(Point p : set){
+            		String line = "";
+            		for(int f = 0; f < p.fDim; f++){
+            			line += Double.toString(p.features[f]) + ",";
+            		}
+            		line += Integer.toString(classes.get(p.pointID));
+            		line += "\n";
+            		bw.write(line);
+            	}
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            } finally {
+            	if (bw != null) {
+                    try {
+                        bw.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }// end of try-catch    	
+    }
+    
+    
+    public void WriteTrainTestFiles(String fileDir, String refFile){
+    	//part 1: read class labels of entire map by right order
+    	ArrayList<Integer> classes = new ArrayList<Integer>(10000);
+		BufferedReader br = null;
+		String line = "";
+		try {
+			br = new BufferedReader(new FileReader(refFile));			
+			while ((line = br.readLine()) != null) {
+				classes.add(Integer.parseInt(line));
+			}
+
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		} finally {
+			if (br != null) {
+				try {
+					br.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+		
+		//part 2: write training and test samples in each footprints
+    	for(int i = 0; i < footprints.size(); i++){
+    		String trainFile = fileDir + "train." + Integer.toString(i) + ".csv";
+    		String testFile = fileDir + "test." + Integer.toString(i) + ".csv";
+    		HashSet<Point> trainSet = new HashSet<Point>();
+    		HashSet<Point> testSet = new HashSet<Point>();
+    		for(Cluster c : footprints.get(i).cs.clusters.values()){
+    			for(Point p : c.points){
+    				if(p.label == 0){
+    					testSet.add(p);
+    				}
+    				else{
+    					trainSet.add(p);
+    				}
+    			}
+    		}//finish load training and test set in footprint i
+    		WriteSamplesToCSVFile(trainSet, classes, trainFile);
+    		WriteSamplesToCSVFile(testSet, classes, testFile);
+    	}//finish writing training and test set in footprint i
     }
     
 }

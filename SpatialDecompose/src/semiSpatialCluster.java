@@ -22,7 +22,7 @@ public class semiSpatialCluster {
         String input_file_path = "data/Chanhassen/input.texture.txt";//"Data/toyExample/toy.input.txt";
         String cluster_file_path = "data/Chanhassen/cluster.txt";//"Data/toyExample/toy.cluster.txt";
         String graph_file_path = "data/Chanhassen/graph.txt";//"Data/toyExample/toy.graph.txt";
-        String output_file_path = "data/Chanhassen/footprints.txt";//"Data/toyExample/toy.footprints.txt";
+        String outputDir = "";// "data/Chanhassen/";
         
         //almost fixed parameters
         int r = 1;
@@ -34,22 +34,26 @@ public class semiSpatialCluster {
         int nc = 374;
         int np = 100; // number of patches in inputs
         
+        //secondary parameter list
+        int minPatchSize = 30;
+        int step = 100;
+        
         
         //create clusters
         ArrayList<Point> points = Point.ReadPointFile(input_file_path, n_feature);
         System.out.println("finish reading points!");
         Clusters cs = new Clusters();
-        /*cs.InitializeSinglePointCluster(points);
+        cs.InitializeSinglePointCluster(points);
         NeighborGraph ng = new NeighborGraph(cs, nr, nc, r);
-        ng.HMergeLazy(np);
-        ng.cs.WriteToFile(cluster_file_path);
-        ng.WriteGraphToFile(graph_file_path);*/
+        ng.HMergeFaster(np, minPatchSize, step, outputDir);
+        //ng.cs.WriteToFile(cluster_file_path);
+        //ng.WriteGraphToFile(graph_file_path);
         
-        cs.ReadFromOutputFile(cluster_file_path, points);
-        NeighborGraph ng = new NeighborGraph(cs, graph_file_path);
+        //cs.ReadFromOutputFile(cluster_file_path, points);
+        //NeighborGraph ng = new NeighborGraph(cs, graph_file_path);
         
-        BipartiteEnsemble be2 = new BipartiteEnsemble(ng, k, num_Zone, true);
-        be2.WriteToFileBisect(output_file_path);	
+        BipartiteEnsemble be2 = new BipartiteEnsemble(ng, k, num_Zone, outputDir);
+        //be2.WriteFootprintsToFile(output_file_path);	
         
     }
 }
