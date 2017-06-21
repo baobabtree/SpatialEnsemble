@@ -38,7 +38,7 @@ public class LocalModel {
 				testIns.setClassIndex(testIns.numAttributes()-1);
 			}
 			
-			
+			//add model selection
 			J48 tree = new J48();
 			if (options != null) tree.setOptions(options);
 			tree.buildClassifier(trainIns);
