@@ -23,7 +23,7 @@ public class BipartiteEnsemble {
     int footprintSize2 = 0;
     
     
-    public BipartiteEnsemble(NeighborGraph ng, int m, int k, double alphaVal, String outputFileStem){
+    public void BisectSpatialEnsemble(NeighborGraph ng, int m, int k, double alphaVal, String outputFileStem){
     	long sTime = System.nanoTime();
     	StringBuilder strBlder = new StringBuilder();
     	
@@ -63,7 +63,7 @@ public class BipartiteEnsemble {
     				strBlder.append(Integer.toString(footprints.size()) + "," + Long.toString((eTime - sTime)/1000000000) +"\n");
     			}
     			else {
-    				String filename = outputFileStem + "footprints." + footprints.size() + ".txt";
+    				String filename = outputFileStem + "f" + footprints.size() + ".txt";
         			this.WriteFootprintsToFile(filename);
     			}
     		}
