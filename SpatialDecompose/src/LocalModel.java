@@ -19,7 +19,7 @@ import java.util.HashSet;
 import java.util.*;
 public class LocalModel {
 	
-	public static double[][] LocalLearningTree(String trainFile, String testFile, int fDim, String modelName, String ensemble, String[] options){
+	public static double[][] LocalLearning(String trainFile, String testFile, String modelName, String ensemble, String[] options){
 		double [][] confusionMat = new double [2][2]; //hard coded for binary classification now!
 		confusionMat[0][0] = confusionMat[0][1] = confusionMat[1][0] = confusionMat[1][1] = 0;
 		
@@ -89,24 +89,26 @@ public class LocalModel {
 				default :
 				}
 				
-				model.buildClassifier(trainIns); 
-				eval.evaluateModel(model, testIns);
+				model.buildClassifier(trainIns);
 				
 				if (ensemble == ""){
-					model.buildClassifier(trainIns);
 					eval.evaluateModel(model, testIns);
 				}
 				else if (ensemble == "Bagging"){
 					Bagging bg = new Bagging();
 					bg.setClassifier(model);
 					bg.buildClassifier(trainIns);
-					eval.evaluateModel(model, trainIns);
+					eval.evaluateModel(model, testIns);
 				}
 				else if (ensemble == "Boosting"){
 					AdaBoostM1 bs = new AdaBoostM1();
 					bs.setClassifier(model);
 					bs.buildClassifier(trainIns);
-					eval.evaluateModel(model, trainIns);
+					eval.evaluateModel(model, testIns);
+				}
+				else {
+					System.out.println("Ensemble method not implemented!");
+					System.exit(1);
 				}
 				
 				confusionMat = eval.confusionMatrix();
@@ -126,8 +128,29 @@ public class LocalModel {
 		return confusionMat;
 	}
 	
+	public static double[][] SpatialEnsembleLearning(String inputPointFile, int fDim, 
+			String refFile, String footprintFile, String outputCSVStem, String modelName, String ensemble, String[] options){
+		
+		double [][] confusionMat = new double [2][2]; //hard coded for binary classification now!
+		confusionMat[0][0] = confusionMat[0][1] = confusionMat[1][0] = confusionMat[1][1] = 0;
+		
+		//now generating TrainTestFiles First
+		int numZones = WriteTrainTestFiles(inputPointFile, fDim, refFile, footprintFile, outputCSVStem);
+		for(int i = 1; i <= numZones; i++){
+    		String trainFile = outputCSVStem + "train." + Integer.toString(i) + ".csv";
+    		String testFile = outputCSVStem + "test." + Integer.toString(i) + ".csv";
+    		double [][] cmi = LocalLearning(trainFile, testFile, modelName, ensemble, options);
+    		//PrintConfusionMatrix(cmi);
+    		for(int ct = 0; ct < 2; ct ++)
+    			for(int cp = 0; cp < 2; cp ++)
+    				confusionMat[ct][cp] += cmi[ct][cp];
+    		
+		}
+		
+		return confusionMat;
+	}
 	
-    public static void WriteTrainTestFiles(String inputPointFile, int fDim, String refFile, String footprintFile, String outputCSVStem){
+    public static int WriteTrainTestFiles(String inputPointFile, int fDim, String refFile, String footprintFile, String outputCSVStem){
     	//read input points
     	ArrayList<Point> points = Point.ReadPointFile(inputPointFile, fDim); //row id is pid
     	ArrayList<Integer> classes = ReadClasses(refFile); //row id is pid
@@ -147,6 +170,7 @@ public class LocalModel {
                     bw.write(Integer.toString(points.get(pid).label) + "\n");
                 }
                 bw.flush();
+                bw.close();
                 bw = new BufferedWriter(new FileWriter(testFile));
                 for (Integer pid : footprint.get(fid)) {
                     if(points.get(pid).label > 0) continue;
@@ -156,6 +180,7 @@ public class LocalModel {
                     bw.write(Integer.toString(classes.get(pid)) + "\n");
                 }
                 bw.flush();
+                bw.close();
             } catch (FileNotFoundException e) {
                 e.printStackTrace();
             } catch (IOException e) {
@@ -170,7 +195,7 @@ public class LocalModel {
                 }
             }
     	}
-
+    	return footprint.keySet().size();
     }
     
     public static HashMap<Integer,HashSet<Integer>> ReadFootprint(String footprintFile){
@@ -232,6 +257,11 @@ public class LocalModel {
 			}
 		}
 		return classes;
+    }
+    
+    public static void PrintConfusionMatrix(double[][] res){
+    	//assume binary classes, 2 by 2
+    	System.out.print(res[0][0] +"," + res[0][1] + "\n" + res[1][0] +"," + res[1][1] +"\n\n");
     }
     
 }

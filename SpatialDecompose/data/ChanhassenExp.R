@@ -41,7 +41,7 @@ boost.cm = as.matrix(table(test.dat[,9], boost.pred))
 
 
 #now runs spatial ensemble
-m = 3; #num of footprints
+m = 4; #num of footprints
 footprint.file = paste(global.dir, "footprints.", as.character(m), ".txt", sep="");
 footprints = read.table(footprint.file, sep=",")
 for(i in unique(footprints[,1])){
@@ -53,8 +53,8 @@ for(i in unique(footprints[,1])){
 
 
 #test sensitivity of number of zones m, DT base model
-m.range = 3:4; #num of footprints
-model="bagging"
+m.range = 4; #num of footprints
+model="dt"
 for(m in m.range){
 	footprint.file = paste(global.dir, "footprints.", as.character(m), ".txt", sep="");
 	footprints = read.table(footprint.file, sep=",")
@@ -69,6 +69,7 @@ for(m in m.range){
 			dt.pred.i = rep(unique(train.i[,9]), length=nrow(data.i)) ;
 			res.i = matrix(0,nr=2,nc=2);
 			res.i[,unique(train.i[,9])] = as.numeric(table(ref.i));
+			print(res.i)
 		}
 		else{
 			train.i[,9] = as.factor(train.i[,9])
@@ -97,6 +98,7 @@ for(m in m.range){
 				#Error!
 			}
 			res.i = table(ref.i, pred.i);
+			print(res.i)
 		}
 		res = res + as.matrix(res.i);
 	}

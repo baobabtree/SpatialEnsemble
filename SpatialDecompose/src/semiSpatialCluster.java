@@ -20,7 +20,7 @@ public class semiSpatialCluster {
         
     	//parameter settings below
         String input_file_path = "data/Experiment/Chanhassen/input.texture.txt";//"Data/toyExample/toy.input.txt";
-        String outputDir = "data/Experiment/Chanhassen/";// "data/Chanhassen/";
+        String outputDir = "data/Experiment/Chanhassen";// "data/Chanhassen/";
         
        
         //parameters related to input data
@@ -39,7 +39,7 @@ public class semiSpatialCluster {
         double alpha = 0.9;
         int num_Zone = 4; // final number of zones
         
-        
+        /*
         //create clusters
         ArrayList<Point> points = Point.ReadPointFile(input_file_path, n_feature);
         System.out.println("finish reading points!");
@@ -52,10 +52,13 @@ public class semiSpatialCluster {
         //cs.ReadFromOutputFile(cluster_file_path, points);
         //NeighborGraph ng = new NeighborGraph(cs, graph_file_path);
         
-        BipartiteEnsemble be2 = new BipartiteEnsemble(ng, num_Zone, k, alpha, outputDir+File.separator+"p100."); 
+        BipartiteEnsemble be2 = new BipartiteEnsemble(ng, num_Zone, k, alpha, outputDir+File.separator+"p100."); */
         
         //LocalModel.WriteTrainTestFiles(input_file_path, n_feature, outputDir+File.separator+"ref.txt", outputDir+File.separator+"p100.footprints.4.txt", outputDir + File.separator + "p100.f4.");
         //LocalModel.LocalLearningTree(outputDir+File.separator+"p100.f4.train.1.csv", outputDir+File.separator+"p100.f4.test.1.csv", n_feature, "SVM", "Bagging", null);
+        double[][] res = LocalModel.SpatialEnsembleLearning(input_file_path, n_feature, 
+    			outputDir+File.separator+"ref.txt", outputDir+File.separator+"p100.footprints.4.txt",outputDir + File.separator + "p100.footprints.4.", "J48", "Boosting", null);
         
+        LocalModel.PrintConfusionMatrix(res);
     }
 }
