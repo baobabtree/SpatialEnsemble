@@ -21,7 +21,7 @@ public class BipartiteEnsemble {
     int footprintSize2 = 0;
     
     
-    public BipartiteEnsemble(NeighborGraph ng, int m, int k, double alphaVal, String outputFileDir){
+    public BipartiteEnsemble(NeighborGraph ng, int m, int k, double alphaVal, String outputFileStem){
     	alpha = alphaVal;
     	footprints = new ArrayList<NeighborGraph>();
     	footprints.add(ng);
@@ -37,7 +37,7 @@ public class BipartiteEnsemble {
     				maxAmbi = curAmbi;
     				maxAmbiI = i;
     			}
-    		} 
+    		}
     		
     		if (debug ){
     			System.out.println("Select a zone with max ambiguity =" +maxAmbi);
@@ -52,8 +52,8 @@ public class BipartiteEnsemble {
     		footprints.add(nglist.get(0));
     		footprints.add(nglist.get(1));
     		
-    		if (outputFileDir != ""){
-    			String filename = outputFileDir + "footprints." + footprints.size() + ".txt";
+    		if (outputFileStem != ""){
+    			String filename = outputFileStem + "footprints." + footprints.size() + ".txt";
     			this.WriteFootprintsToFile(filename);
     		}
     		

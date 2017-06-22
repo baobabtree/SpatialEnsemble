@@ -431,8 +431,8 @@ public class NeighborGraph {
     		if (patchFileDir != ""){
     			if (cs.clusters.size() <= nPatch + 10 * step && (cs.clusters.size() - nPatch) % step == 0){
                 	int size = cs.clusters.size();
-                	String filenameC = patchFileDir + "cluster." + Integer.toString(size) + ".txt";
-                	String filenameG = patchFileDir + "graph." + Integer.toString(size) + ".txt";
+                	String filenameC = patchFileDir + File.separator + "cluster." + Integer.toString(size) + ".txt";
+                	String filenameG = patchFileDir + File.separator + "graph." + Integer.toString(size) + ".txt";
                 	this.cs.WriteToFile(filenameC);
                 	this.WriteGraphToFile(filenameG);
                 }

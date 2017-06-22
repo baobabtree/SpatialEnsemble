@@ -19,10 +19,8 @@ public class semiSpatialCluster {
     	//3. in Neighborgraph HMergeLazy whether to write clusters and file names
         
     	//parameter settings below
-        String input_file_path = "data/Chanhassen/input.texture.txt";//"Data/toyExample/toy.input.txt";
-        String cluster_file_path = "data/Chanhassen/cluster.txt";//"Data/toyExample/toy.cluster.txt";
-        String graph_file_path = "data/Chanhassen/graph.txt";//"Data/toyExample/toy.graph.txt";
-        String outputDir = "data/Experiment/";// "data/Chanhassen/";
+        String input_file_path = "data/Experiment/Chanhassen/input.texture.txt";//"Data/toyExample/toy.input.txt";
+        String outputDir = "data/Experiment/Chanhassen/";// "data/Chanhassen/";
         
         //parameters related to input data
         int n_feature = 8;
@@ -38,9 +36,9 @@ public class semiSpatialCluster {
         //parameters related to footprint (zone) grouping
         int k = 10; // number of nearest neighbor
         double alpha = 0.9;
-        int num_Zone = 10; // final number of zones
+        int num_Zone = 4; // final number of zones
         
-        
+        /*
         //create clusters
         ArrayList<Point> points = Point.ReadPointFile(input_file_path, n_feature);
         System.out.println("finish reading points!");
@@ -54,8 +52,12 @@ public class semiSpatialCluster {
         //cs.ReadFromOutputFile(cluster_file_path, points);
         //NeighborGraph ng = new NeighborGraph(cs, graph_file_path);
         
-        BipartiteEnsemble be2 = new BipartiteEnsemble(ng, num_Zone, k, alpha, outputDir);
-        //be2.WriteFootprintsToFile(output_file_path);	
+        BipartiteEnsemble be2 = new BipartiteEnsemble(ng, num_Zone, k, alpha, outputDir+File.separator+"p100.");
+        //be2.WriteFootprintsToFile(output_file_path);*/
+        //LocalModel.WriteTrainTestFiles(input_file_path, n_feature, outputDir+File.separator+"ref.txt", 
+        		//outputDir+File.separator+"p100.footprints.4.txt", outputDir + File.separator + "p100.f4.");
+        LocalModel.LocalLearningTree(outputDir+File.separator+"p100.f4.train.2.csv", 
+        		outputDir+File.separator+"p100.f4.test.2.csv", n_feature, "SVM", "Bagging", null);
         
     }
 }
