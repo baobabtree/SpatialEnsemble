@@ -19,7 +19,9 @@ import java.util.HashSet;
 import java.util.*;
 public class LocalModel {
 	
-	public static void LocalLearningTree(String trainFile, String testFile, int fDim, String modelName, String ensemble, String[] options){
+	public static double[][] LocalLearningTree(String trainFile, String testFile, int fDim, String modelName, String ensemble, String[] options){
+		double [][] confusionMat = new double [2][2]; //hard coded for binary classification now!
+		confusionMat[0][0] = confusionMat[0][1] = confusionMat[1][0] = confusionMat[1][1] = 0;
 		
 		try{
 			CSVLoader loader = new CSVLoader();
@@ -29,68 +31,88 @@ public class LocalModel {
 			loader.setSource(new File(testFile));
 			Instances testIns = loader.getDataSet();
 			
-			NumericToNominal nu2no = new NumericToNominal();
-			int [] classIdx = new int [1]; 
-			classIdx[0] = trainIns.numAttributes() - 1;
-			nu2no.setAttributeIndicesArray(classIdx);
-			nu2no.setInputFormat(trainIns);
-			trainIns = Filter.useFilter(trainIns, nu2no);
-			testIns = Filter.useFilter(testIns, nu2no);
-			
 			if (trainIns.classIndex() == -1 || testIns.classIndex() == -1){
 				trainIns.setClassIndex(trainIns.numAttributes()-1);
 				testIns.setClassIndex(testIns.numAttributes()-1);
 			}
 			
-			Evaluation eval = new Evaluation(trainIns);
 			
-			Classifier model = null;
-			//add model selection
-			switch (modelName) {
-			case "J48": {
-				model = new J48(); 
-				if (options != null) ((J48) model).setOptions(options);  
-				break;  
-			}
-			case "NeuralNetwork": {
-				model = new MultilayerPerceptron();
-				if (options != null) ((MultilayerPerceptron) model).setOptions(options);  
-				break;
-			}
-			case "SVM": {
-				model = new SMO();
-				if (options != null) ((SMO) model).setOptions(options); 
-				break;
-			}
-			case "RandomForest": {
-				model = new RandomForest();
-				if (options != null) ((RandomForest) model).setOptions(options);  
-				break;
-			}
-			default :
-			}
+			String[] converterOptions= new String[2];
+	        converterOptions[0]="-R";
+	        converterOptions[1]=Integer.toString(trainIns.classIndex()+1);  //range of variables to make numeric
+	        
+	        NumericToNominal converter = new NumericToNominal();
+	        converter.setOptions(converterOptions);
+			converter.setInputFormat(trainIns);
+			trainIns = Filter.useFilter(trainIns, converter);
+			converter.setInputFormat(testIns);
+			testIns = Filter.useFilter(testIns, converter);
 			
-			model.buildClassifier(trainIns); 
-			eval.evaluateModel(model, testIns);
 			
-			if (ensemble == ""){
-				model.buildClassifier(trainIns);
+			if (trainIns.classAttribute().numValues() == 1){
+				//unary class in this training set
+				Enumeration<Instance> e = testIns.enumerateInstances();
+				int PredClass = Integer.parseInt(trainIns.classAttribute().value(0)) - 1;
+				while (e.hasMoreElements()){
+					Instance ins = e.nextElement();
+					int TrueClass = Integer.parseInt(testIns.classAttribute().value((int)ins.classValue())) -1;
+					confusionMat[TrueClass][PredClass] ++;
+				}
+				
+			}
+			else{
+				Evaluation eval = new Evaluation(trainIns);
+				
+				Classifier model = null;
+				//add model selection
+				switch (modelName) {
+				case "J48": {
+					model = new J48(); 
+					if (options != null) ((J48) model).setOptions(options);  
+					break;  
+				}
+				case "NeuralNetwork": {
+					model = new MultilayerPerceptron();
+					if (options != null) ((MultilayerPerceptron) model).setOptions(options);  
+					break;
+				}
+				case "SVM": {
+					model = new SMO();
+					if (options != null) ((SMO) model).setOptions(options); 
+					break;
+				}
+				case "RandomForest": {
+					model = new RandomForest();
+					if (options != null) ((RandomForest) model).setOptions(options);  
+					break;
+				}
+				default :
+				}
+				
+				model.buildClassifier(trainIns); 
 				eval.evaluateModel(model, testIns);
+				
+				if (ensemble == ""){
+					model.buildClassifier(trainIns);
+					eval.evaluateModel(model, testIns);
+				}
+				else if (ensemble == "Bagging"){
+					Bagging bg = new Bagging();
+					bg.setClassifier(model);
+					bg.buildClassifier(trainIns);
+					eval.evaluateModel(model, trainIns);
+				}
+				else if (ensemble == "Boosting"){
+					AdaBoostM1 bs = new AdaBoostM1();
+					bs.setClassifier(model);
+					bs.buildClassifier(trainIns);
+					eval.evaluateModel(model, trainIns);
+				}
+				
+				confusionMat = eval.confusionMatrix();
+				
+				System.out.print(eval.toClassDetailsString());
 			}
-			else if (ensemble == "Bagging"){
-				Bagging bg = new Bagging();
-				bg.setClassifier(model);
-				bg.buildClassifier(trainIns);
-				eval.evaluateModel(model, trainIns);
-			}
-			else if (ensemble == "Boosting"){
-				AdaBoostM1 bs = new AdaBoostM1();
-				bs.setClassifier(model);
-				bs.buildClassifier(trainIns);
-				eval.evaluateModel(model, trainIns);
-			}
-			
-			System.out.print(eval.toClassDetailsString());
 		}
 		catch (Exception e){
 			e.printStackTrace();
@@ -98,6 +120,10 @@ public class LocalModel {
 		finally{
 			
 		}
+		
+		System.out.println(confusionMat[0][0] + "," + confusionMat[0][1] + "," + confusionMat[1][0] + "," + confusionMat[1][1]);
+
+		return confusionMat;
 	}
 	
 	
@@ -208,7 +234,4 @@ public class LocalModel {
 		return classes;
     }
     
-	public static void main (String[] args){
-		//LocalLearningTree("data/weka/train.csv", "data/weka/test.csv", 1, null);
-	}
 }

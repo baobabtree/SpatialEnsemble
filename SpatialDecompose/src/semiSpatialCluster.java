@@ -22,6 +22,7 @@ public class semiSpatialCluster {
         String input_file_path = "data/Experiment/Chanhassen/input.texture.txt";//"Data/toyExample/toy.input.txt";
         String outputDir = "data/Experiment/Chanhassen/";// "data/Chanhassen/";
         
+       
         //parameters related to input data
         int n_feature = 8;
         int nr = 221;
@@ -52,12 +53,12 @@ public class semiSpatialCluster {
         //cs.ReadFromOutputFile(cluster_file_path, points);
         //NeighborGraph ng = new NeighborGraph(cs, graph_file_path);
         
-        BipartiteEnsemble be2 = new BipartiteEnsemble(ng, num_Zone, k, alpha, outputDir+File.separator+"p100.");
-        //be2.WriteFootprintsToFile(output_file_path);*/
-        //LocalModel.WriteTrainTestFiles(input_file_path, n_feature, outputDir+File.separator+"ref.txt", 
-        		//outputDir+File.separator+"p100.footprints.4.txt", outputDir + File.separator + "p100.f4.");
-        LocalModel.LocalLearningTree(outputDir+File.separator+"p100.f4.train.2.csv", 
-        		outputDir+File.separator+"p100.f4.test.2.csv", n_feature, "SVM", "Bagging", null);
+        BipartiteEnsemble be2 = new BipartiteEnsemble(ng, num_Zone, k, alpha, outputDir+File.separator+"p100."); 
+        
+        LocalModel.WriteTrainTestFiles(input_file_path, n_feature, outputDir+File.separator+"ref.txt", 
+        		outputDir+File.separator+"p100.footprints.4.txt", outputDir + File.separator + "p100.f4.");*/
+        LocalModel.LocalLearningTree(outputDir+File.separator+"p100.f4.train.1.csv", 
+        		outputDir+File.separator+"p100.f4.test.1.csv", n_feature, "SVM", "Bagging", null);
         
     }
 }
