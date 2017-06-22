@@ -9,7 +9,9 @@ import java.util.*;
 import java.lang.Math;
 
 public class BipartiteEnsemble {
-	public boolean debug = true;
+	public boolean debug = false;
+	public boolean timeCount = true;
+	
 	public double alpha = 0.90;
 	public ArrayList<NeighborGraph> footprints; //use NeighborGraph's to represent all footprints
 	
@@ -22,6 +24,9 @@ public class BipartiteEnsemble {
     
     
     public BipartiteEnsemble(NeighborGraph ng, int m, int k, double alphaVal, String outputFileStem){
+    	long sTime = System.nanoTime();
+    	StringBuilder strBlder = new StringBuilder();
+    	
     	alpha = alphaVal;
     	footprints = new ArrayList<NeighborGraph>();
     	footprints.add(ng);
@@ -53,12 +58,20 @@ public class BipartiteEnsemble {
     		footprints.add(nglist.get(1));
     		
     		if (outputFileStem != ""){
-    			String filename = outputFileStem + "footprints." + footprints.size() + ".txt";
-    			this.WriteFootprintsToFile(filename);
+    			if (timeCount){
+    				long eTime = System.nanoTime();
+    				strBlder.append(Integer.toString(footprints.size()) + "," + Long.toString((eTime - sTime)/1000000000) +"\n");
+    			}
+    			else {
+    				String filename = outputFileStem + "footprints." + footprints.size() + ".txt";
+        			this.WriteFootprintsToFile(filename);
+    			}
     		}
     		
     		if (!success) break; //cannot break zones any further!
     	}//results saved to footprints list
+    	if (timeCount)
+    		FileIO.WriteStringToFile(outputFileStem + "SETime.txt", strBlder.toString());
     }
     
     

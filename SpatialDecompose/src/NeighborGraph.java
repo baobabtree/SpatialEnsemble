@@ -8,7 +8,8 @@ public class NeighborGraph {
 
     public Clusters cs;
     
-    public boolean debug = true;
+    public boolean debug = false;
+    public boolean timeCount = true;
 
     
     public NeighborGraph() {
@@ -353,6 +354,9 @@ public class NeighborGraph {
     }
 
     public boolean HMergeFaster(int nPatch, int minPatchSize, int step, String patchFileDir) {
+    	long tStart = System.nanoTime();//start time counter
+    	StringBuilder strBlder = new StringBuilder();
+    	
     	PriorityQueue<PatchPair> PQ = new PriorityQueue<PatchPair>();
     	HashSet<Integer> obsoleteCids = new HashSet<Integer>();
     	PQ.add(new PatchPair(0,0,0)); //dummy element for stop criteria
@@ -429,7 +433,14 @@ public class NeighborGraph {
     		}
     		
     		if (patchFileDir != ""){
-    			if (cs.clusters.size() <= nPatch + 10 * step && (cs.clusters.size() - nPatch) % step == 0){
+    			if (this.timeCount){
+    				if ( (cs.clusters.size() - nPatch) % step == 0 ) {
+    					long tEnd = System.nanoTime();
+        				//System.out.println("HMergeFaster," + cs.clusters.size() + "," + Long.toString((tEnd-tStart)/1000000000) );
+    					strBlder.append(cs.clusters.size() + "," + Long.toString((tEnd-tStart)/1000000000) +"\n");
+    				}
+    			}
+    			else if (cs.clusters.size() <= nPatch + 10 * step && (cs.clusters.size() - nPatch) % step == 0){
                 	int size = cs.clusters.size();
                 	String filenameC = patchFileDir + File.separator + "cluster." + Integer.toString(size) + ".txt";
                 	String filenameG = patchFileDir + File.separator + "graph." + Integer.toString(size) + ".txt";
@@ -438,11 +449,17 @@ public class NeighborGraph {
                 }
     		}
     	}
-  
+    	
+    	//flush result to timeLog.txt
+    	if (this.timeCount){
+    		FileIO.WriteStringToFile(patchFileDir+File.separator+"HMergeFaster.time.txt", strBlder.toString());
+    	}
         return true;
     }
     
     public boolean HMergeBaseline(int nPatch, int minPatchSize, int step, String patchFileDir) {
+    	long tStart = System.nanoTime();
+    	StringBuilder strBlder = new StringBuilder();
     	
     	int maxId = cs.clusters.size(); // last maxid taken
     	int checkMinSize = (int) (cs.clusters.size() * 0.05); //used for cleanup small holes
@@ -478,7 +495,14 @@ public class NeighborGraph {
     		}
             
     		if (patchFileDir != ""){
-    			if (cs.clusters.size() <= nPatch + 10 * step && (cs.clusters.size() - nPatch) % step == 0){
+    			if (this.timeCount){
+    				if ((cs.clusters.size() - nPatch) % step == 0) {
+    					long tEnd = System.nanoTime();
+        				//System.out.println("HMergeBaseline," + cs.clusters.size() + "," + Long.toString((tEnd-tStart)/1000000000) );
+    					strBlder.append(cs.clusters.size() + "," + Long.toString((tEnd-tStart)/1000000000) +"\n");
+    				}
+    			}
+    			else if (cs.clusters.size() <= nPatch + 10 * step && (cs.clusters.size() - nPatch) % step == 0){
                 	int size = cs.clusters.size();
                 	String filenameC = patchFileDir + "cluster." + Integer.toString(size) + ".txt";
                 	String filenameG = patchFileDir + "graph." + Integer.toString(size) + ".txt";
@@ -487,6 +511,12 @@ public class NeighborGraph {
                 }
     		}
     	}
+    	
+    	//flush result to timeLog.txt
+    	if (this.timeCount){
+    		FileIO.WriteStringToFile(patchFileDir+File.separator+"HMergeBaseline.time.txt", strBlder.toString());
+    	}
+    		
         return true;
     }
  

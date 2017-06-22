@@ -111,7 +111,7 @@ public class LocalModel {
 				
 				confusionMat = eval.confusionMatrix();
 				
-				System.out.print(eval.toClassDetailsString());
+				//System.out.print(eval.toClassDetailsString());
 			}
 		}
 		catch (Exception e){
@@ -121,7 +121,7 @@ public class LocalModel {
 			
 		}
 		
-		System.out.println(confusionMat[0][0] + "," + confusionMat[0][1] + "," + confusionMat[1][0] + "," + confusionMat[1][1]);
+		//System.out.println(confusionMat[0][0] + "," + confusionMat[0][1] + "," + confusionMat[1][0] + "," + confusionMat[1][1]);
 
 		return confusionMat;
 	}

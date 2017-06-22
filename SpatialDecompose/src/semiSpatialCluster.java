@@ -39,7 +39,7 @@ public class semiSpatialCluster {
         double alpha = 0.9;
         int num_Zone = 4; // final number of zones
         
-        /*
+        
         //create clusters
         ArrayList<Point> points = Point.ReadPointFile(input_file_path, n_feature);
         System.out.println("finish reading points!");
@@ -47,18 +47,15 @@ public class semiSpatialCluster {
         cs.InitializeSinglePointCluster(points);
         NeighborGraph ng = new NeighborGraph(cs, nr, nc, r);
         ng.HMergeFaster(np, minPatchSize, step, outputDir);
-        //ng.cs.WriteToFile(cluster_file_path);
-        //ng.WriteGraphToFile(graph_file_path);
+
         
         //cs.ReadFromOutputFile(cluster_file_path, points);
         //NeighborGraph ng = new NeighborGraph(cs, graph_file_path);
         
         BipartiteEnsemble be2 = new BipartiteEnsemble(ng, num_Zone, k, alpha, outputDir+File.separator+"p100."); 
         
-        LocalModel.WriteTrainTestFiles(input_file_path, n_feature, outputDir+File.separator+"ref.txt", 
-        		outputDir+File.separator+"p100.footprints.4.txt", outputDir + File.separator + "p100.f4.");*/
-        LocalModel.LocalLearningTree(outputDir+File.separator+"p100.f4.train.1.csv", 
-        		outputDir+File.separator+"p100.f4.test.1.csv", n_feature, "SVM", "Bagging", null);
+        //LocalModel.WriteTrainTestFiles(input_file_path, n_feature, outputDir+File.separator+"ref.txt", outputDir+File.separator+"p100.footprints.4.txt", outputDir + File.separator + "p100.f4.");
+        //LocalModel.LocalLearningTree(outputDir+File.separator+"p100.f4.train.1.csv", outputDir+File.separator+"p100.f4.test.1.csv", n_feature, "SVM", "Bagging", null);
         
     }
 }
