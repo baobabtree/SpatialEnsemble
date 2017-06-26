@@ -10,7 +10,7 @@ import java.lang.Math;
 
 public class BipartiteEnsemble {
 	public boolean debug = false;
-	public boolean timeCount = true;
+	public boolean timeCount = false;
 	
 	public double alpha = 0.90;
 	public ArrayList<NeighborGraph> footprints; //use NeighborGraph's to represent all footprints
@@ -23,7 +23,7 @@ public class BipartiteEnsemble {
     int footprintSize2 = 0;
     
     
-    public void BisectSpatialEnsemble(NeighborGraph ng, int m, int k, double alphaVal, String outputFileStem){
+    public void BisectSpatialEnsemble(NeighborGraph ng, int m, int k, int minCls, double alphaVal, String outputFileStem){
     	long sTime = System.nanoTime();
     	StringBuilder strBlder = new StringBuilder();
     	
@@ -36,7 +36,7 @@ public class BipartiteEnsemble {
     		int maxAmbiI = 0;
     		
     		for(int i = 0; i < footprints.size(); i++){
-    			double curAmbi = footprints.get(i).cs.AvgPairwiseKNNAmbiguity(k);
+    			double curAmbi = footprints.get(i).cs.AvgPairwiseKNNAmbiguity(k, minCls);
     			//double curAmbi = footprints.get(i).cs.KNNAmbiguity(k);
     			if( curAmbi > maxAmbi ){
     				maxAmbi = curAmbi;
@@ -50,7 +50,7 @@ public class BipartiteEnsemble {
     		
     		//bisectOneStep to split most ambiguous footprints
     		NeighborGraph ngMax = footprints.remove(maxAmbiI);
-    		boolean success = Bisect(ngMax, k); //results saved in footprint1, footprint2
+    		boolean success = Bisect(ngMax, k, minCls); //results saved in footprint1, footprint2
     		
     		//split footprint graph into two subgraphs, then add to queue
     		ArrayList<NeighborGraph> nglist = ngMax.NeighborGraphBiSplit(footprint1, footprint2);
@@ -76,9 +76,9 @@ public class BipartiteEnsemble {
     
     
     //new Bisecting Ensemble method
-    public boolean Bisect(NeighborGraph ng, int k){
+    public boolean Bisect(NeighborGraph ng, int k, int minCls){
     	if (!ng.cs.hasBipartiteGraph){
-    		ng.cs.GenerateBipartiteGraph(k);
+    		ng.cs.GenerateBipartiteGraph(k, minCls);
     	}
     	ambi_map = ng.cs.ambi_map;
         ArrayList<Integer> c1ids = ng.cs.c1ids;

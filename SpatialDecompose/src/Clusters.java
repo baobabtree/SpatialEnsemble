@@ -33,7 +33,7 @@ public class Clusters {
 	}
 	
 	public void InitializeSinglePointCluster(List<Point> points){
-		//clusters = new HashMap<Integer, Cluster>();
+		clusters = new HashMap<Integer, Cluster>();
 		int id = 0;
 		for (Point p : points) {
 			Cluster c = new Cluster(id, p);
@@ -65,7 +65,7 @@ public class Clusters {
 			int pid, cid, label;
 			
 			while ((line = br.readLine()) != null) {
-				
+				if( line == "" ) break;
 			    //use comma as separator
 				String[] fields = line.split(cvsSplitBy);
 				pid = Integer.parseInt(fields[0]);
@@ -174,16 +174,17 @@ public class Clusters {
         return true;
 	}
 	
-	public void GenerateBipartiteGraph(int k){
+	public void GenerateBipartiteGraph(int k, int minCls){
+		int minClsCount = minCls; //1.5 * k
 		ambi_map = new HashMap<Integer, HashMap<Integer, Double>>();
 		c1ids = new ArrayList<Integer>();
         c2ids = new ArrayList<Integer>();
         for (Cluster c : clusters.values()) {
             if (c.label == 1) {
-                if (c.classCount < 1.5 * k) continue;
+                if (c.classCount < minClsCount) continue;
                 c1ids.add(c.id);
             } else if (c.label == 2) {
-                if (c.classCount < 1.5 * k) continue;
+                if (c.classCount < minClsCount) continue;
                 c2ids.add(c.id);
             }
         }
@@ -199,9 +200,9 @@ public class Clusters {
         hasBipartiteGraph = true;
 	}
 	
-	public Double MaxPairwiseKNNAmbiguity(int k){
+	public Double MaxPairwiseKNNAmbiguity(int k, int minCls){
 		if (!hasBipartiteGraph){
-			GenerateBipartiteGraph(k);
+			GenerateBipartiteGraph(k, minCls);
 		}
 		
         double ambi = 0;
@@ -222,9 +223,9 @@ public class Clusters {
         return ambi;
 	}
 	
-	public Double AvgPairwiseKNNAmbiguity(int k){
+	public Double AvgPairwiseKNNAmbiguity(int k, int minCls){
 		if (!hasBipartiteGraph){
-			GenerateBipartiteGraph(k);
+			GenerateBipartiteGraph(k, minCls);
 		}
 		
         double ambi = 0;

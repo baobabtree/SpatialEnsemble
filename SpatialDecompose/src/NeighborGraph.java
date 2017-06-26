@@ -9,7 +9,7 @@ public class NeighborGraph {
     public Clusters cs;
     
     public boolean debug = false;
-    public boolean timeCount = true;
+    public boolean timeCount = false;
 
     
     public NeighborGraph() {
@@ -436,7 +436,7 @@ public class NeighborGraph {
     			if (this.timeCount){
     				if ( (cs.clusters.size() - nPatch) % step == 0 ) {
     					long tEnd = System.nanoTime();
-        				//System.out.println("HMergeFaster," + cs.clusters.size() + "," + Long.toString((tEnd-tStart)/1000000000) );
+        				System.out.println("HMergeFaster," + cs.clusters.size() + "," + Long.toString((tEnd-tStart)/1000000000) );
     					strBlder.append(cs.clusters.size() + "," + Long.toString((tEnd-tStart)/1000000000) +"\n");
     				}
     			}
@@ -504,8 +504,8 @@ public class NeighborGraph {
     			}
     			else if (cs.clusters.size() <= nPatch + 10 * step && (cs.clusters.size() - nPatch) % step == 0){
                 	int size = cs.clusters.size();
-                	String filenameC = patchFileDir + "cluster." + Integer.toString(size) + ".txt";
-                	String filenameG = patchFileDir + "graph." + Integer.toString(size) + ".txt";
+                	String filenameC = patchFileDir + File.separator + "cluster." + Integer.toString(size) + ".txt";
+                	String filenameG = patchFileDir + File.separator + "graph." + Integer.toString(size) + ".txt";
                 	this.cs.WriteToFile(filenameC);
                 	this.WriteGraphToFile(filenameG);
                 }

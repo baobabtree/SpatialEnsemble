@@ -81,6 +81,11 @@ public class LocalModel {
 					if (options != null) ((SMO) model).setOptions(options); 
 					break;
 				}
+				case "LR": {
+					model = new Logistic();
+					if (options != null) ((Logistic) model).setOptions(options);  
+					break;
+				}
 				case "RandomForest": {
 					model = new RandomForest();
 					if (options != null) ((RandomForest) model).setOptions(options);  
@@ -89,22 +94,22 @@ public class LocalModel {
 				default :
 				}
 				
-				model.buildClassifier(trainIns);
 				
 				if (ensemble == ""){
+					model.buildClassifier(trainIns);
 					eval.evaluateModel(model, testIns);
 				}
 				else if (ensemble == "Bagging"){
 					Bagging bg = new Bagging();
 					bg.setClassifier(model);
 					bg.buildClassifier(trainIns);
-					eval.evaluateModel(model, testIns);
+					eval.evaluateModel(bg, testIns);
 				}
 				else if (ensemble == "Boosting"){
 					AdaBoostM1 bs = new AdaBoostM1();
 					bs.setClassifier(model);
 					bs.buildClassifier(trainIns);
-					eval.evaluateModel(model, testIns);
+					eval.evaluateModel(bs, testIns);
 				}
 				else {
 					System.out.println("Ensemble method not implemented!");
@@ -261,7 +266,21 @@ public class LocalModel {
     
     public static void PrintConfusionMatrix(double[][] res){
     	//assume binary classes, 2 by 2
-    	System.out.print(res[0][0] +"," + res[0][1] + "\n" + res[1][0] +"," + res[1][1] +"\n\n");
+    	String cm = Integer.toString((int) res[0][0]) +"," + Integer.toString((int) res[0][1]) + "," + Integer.toString((int) res[1][0]) 
+        +"," + Integer.toString((int) res[1][1]) +"\n";
+    	System.out.print(cm);
     }
+    
+    public static String ConfusionMatrixToString(double[][] res){
+    	double prec = res[1][1] /(res[1][1] + res[0][1]);
+    	double rec = res[1][1] /(res[1][1] + res[1][0]);
+    	double f = 2*prec*rec/(prec+rec);
+    	
+    	String cm = Integer.toString((int) res[0][0]) +"," + Integer.toString((int) res[0][1]) + "," + Integer.toString((int) res[1][0]) 
+    	        +"," + Integer.toString((int) res[1][1]) + "," + Double.toString(prec) 
+    	        + "," + Double.toString(rec) + "," +  Double.toString(f) + "\n";
+    	return cm;
+    }
+    
     
 }
